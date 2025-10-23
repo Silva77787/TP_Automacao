@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="pt">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Página Simples</title>
+  <style>
+    :root{--bg:#f7fafc;--card:#ffffff;--accent:#2563eb;--muted:#6b7280}
+    body{font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; background:var(--bg); color:#111;margin:0;padding:0;display:flex;min-height:100vh;align-items:center;justify-content:center}
+    .card{background:var(--card);border-radius:12px;box-shadow:0 6px 18px rgba(2,6,23,.08);padding:2rem;max-width:720px;width:94%;}
+    header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem}
+    h1{font-size:1.25rem;margin:0}
+    nav a{margin-left:1rem;text-decoration:none;color:var(--accent)}
+    p.lead{color:var(--muted);margin-top:.5rem}
+    footer{margin-top:1.5rem;font-size:.85rem;color:var(--muted)}
+    .btn{display:inline-block;padding:.5rem .9rem;border-radius:8px;background:var(--accent);color:#fff;text-decoration:none}
+    @media (max-width:480px){h1{font-size:1rem}}
+  </style>
+</head>
+<body>
+  <main class="card">
+    <header>
+      <h1>Página de Exemplo</h1>
+      <nav>
+        <a href="#about">Sobre</a>
+        <a href="#contact">Contacto</a>
+      </nav>
+    </header>
+
+    <section id="hero">
+      <p class="lead">Isto é um ficheiro <code>index.html</code> simples — leve e pronto a usar.</p>
+      <p>Exemplo de elementos: título, navegação, secções e um pequeno script.</p>
+      <p><a class="btn" href="#contact" id="cta">Diz olá</a></p>
+    </section>
+
+    <section id="about">
+      <h2>Sobre</h2>
+      <p>Usa este ficheiro como ponto de partida. Edita o HTML, adiciona estilos ou liga frameworks se precisares.</p>
+    </section>
+
+    <section id="contact">
+      <h2>Contacto</h2>
+      <form onsubmit="handleSubmit(event)">
+        <label>
+          Nome<br>
+          <input type="text" id="name" placeholder="O teu nome" required>
+        </label>
+        <br><br>
+        <label>
+          Mensagem<br>
+          <textarea id="message" rows="4" placeholder="Escreve aqui..." required></textarea>
+        </label>
+        <br><br>
+        <button type="submit" class="btn">Enviar</button>
+      </form>
+    </section>
+
+    <footer>
+      <small>Feito com ❤️ — exemplu de <code>index.html</code></small>
+    </footer>
+  </main>
+
+  <script>
+    function handleSubmit(e){
+      e.preventDefault();
+      const name = document.getElementById('name').value.trim();
+      const msg = document.getElementById('message').value.trim();
+      if(!name || !msg) return alert('Por favor preenche os campos.');
+      alert(`Obrigado, ${name}! Recebi a tua mensagem.`);
+      e.target.reset();
+      document.getElementById('cta').focus();
+    }
+
+    // Pequeno toque: mostra um console log quando a página carrega
+    window.addEventListener('load', () => console.log('index.html carregado'));
+  </script>
+</body>
+</html>
