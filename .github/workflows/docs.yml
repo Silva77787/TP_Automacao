@@ -9,12 +9,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      - name: Install Pandoc
+        run: sudo apt-get install -y pandoc
+
       - name: Build documentation
         run: |
-          pip install pdoc
-          pdoc . --output-dir docs
+          mkdir -p docs
+          pandoc README.md -o docs/index.html
+
       - name: Upload documentation
         uses: actions/upload-pages-artifact@v3
         with:
           path: docs
-
