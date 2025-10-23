@@ -1,0 +1,20 @@
+name: Generate and Deploy Docs
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build documentation
+        run: |
+          pip install pdoc
+          pdoc --html . --output-dir docs
+      - name: Upload documentation
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs
+
