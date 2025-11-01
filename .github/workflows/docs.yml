@@ -21,11 +21,14 @@ jobs:
         with:
           python-version: "3.11"
 
+      - name: Install dependencies
+        run: pip install -r backend/requirements.txt
+
       - name: Install pdoc
         run: pip install pdoc
 
       - name: Build documentation
-        run: pdoc ./backend --output-dir docs
+        run: pdoc backend --output-dir docs
 
       - name: Upload documentation
         uses: actions/upload-pages-artifact@v3
