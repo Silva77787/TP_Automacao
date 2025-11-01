@@ -4,17 +4,42 @@ on:
   push:
     branches: [ "main" ]
 
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
+      - name: Install pdoc
+        run: pip install pdoc
+
       - name: Build documentation
-        run: |
-          pip install pdoc
-          pdoc . --output-dir docs
+        run: pdoc ./backend --output-dir docs
+
       - name: Upload documentation
         uses: actions/upload-pages-artifact@v3
         with:
           path: docs
 
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
