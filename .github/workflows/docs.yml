@@ -10,39 +10,39 @@ permissions:
   id-token: write
 
 jobs:
-  build:
+  build-docs:
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python
+      - name: Setup Python
         uses: actions/setup-python@v4
         with:
           python-version: "3.11"
 
       - name: Install dependencies
-        run: pip install -r backend/requirements.txt
+        working-directory: ./backend
+        run: |
+          pip install -r requirements.txt
+          pip install pdoc
 
-      - name: Install pdoc
-        run: pip install pdoc
-
-      - name: Build documentation
-        run: pdoc backend --output-dir docs
+      - name: Generate docs
+        working-directory: ./backend
+        run: |
+          pdoc backend --output-dir ../docs
 
       - name: Upload documentation
         uses: actions/upload-pages-artifact@v3
         with:
           path: docs
 
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
 
+  deploy:
+    needs: build-docs
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
     steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+      - uses: actions/deploy-pages@v4
