@@ -15,11 +15,32 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Build Docker image
-        run: docker build -t my-python-app .
+        run: docker build -t django-backend .
 
-      - name: Run linting inside container
-        run: docker run my-python-app pylint src || true
+      # Optionally run lint (if pylint installed)
+      - name: Lint Django project
+        run: |
+          docker run --rm django-backend pylint backend || true
 
-      #- name: Run application or tests
-      #  run: docker run my-python-app python -m unittest discover -s src/tests
+      - name: Start services with Docker Compose
+        run: docker compose up -d --build
+
+      - name: Wait for database to be ready
+        run: |
+          echo "Waiting for PostgreSQL..."
+          sleep 10
+
+      - name: Run Django checks
+        run: docker compose exec -T web python manage.py check
+
+      - name: Run Django migrations
+        run: docker compose exec -T web python manage.py migrate --noinput
+
+      - name: Run Django tests
+        run: docker compose exec -T web python manage.py test
+
+      - name: Shutdown containers
+        if: always()
+        run: docker compose down
+
 
