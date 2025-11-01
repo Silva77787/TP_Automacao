@@ -15,6 +15,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Build Docker image
+        working-directory: ./backend
         run: docker build -t django-backend .
 
       # Optionally run lint (if pylint installed)
@@ -23,6 +24,7 @@ jobs:
           docker run --rm django-backend pylint backend || true
 
       - name: Start services with Docker Compose
+        working-directory: ./backend
         run: docker compose up -d --build
 
       - name: Wait for database to be ready
@@ -31,16 +33,20 @@ jobs:
           sleep 10
 
       - name: Run Django checks
+        working-directory: ./backend
         run: docker compose exec -T web python manage.py check
 
       - name: Run Django migrations
+        working-directory: ./backend
         run: docker compose exec -T web python manage.py migrate --noinput
 
       - name: Run Django tests
+        working-directory: ./backend
         run: docker compose exec -T web python manage.py test
 
       - name: Shutdown containers
         if: always()
+        working-directory: ./backend
         run: docker compose down
 
 
