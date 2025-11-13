@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en" style="overflow: hidden;"><head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>ONDA - Online Database Architect</title>
+    <link rel="icon" type="image/x-icon" href="https://onda.dei.uc.pt/v4/icons/onda_ico_3.ico">
+
+    <link rel="stylesheet" href="movies_files/bootstrap.min.css">
+    <!-- Bootstrap -->
+    <!-- CSS -->
+    <link rel="stylesheet" href="movies_files/joint.css">
+    <style type="text/css">@import "css/onda.css";</style>
+    <link rel="stylesheet" type="text/css" href="movies_files/joyride-2.1.css"> <!-- Attach the Joyride CSS file -->
+    <link rel="stylesheet" type="text/css" href="movies_files/jquery-ui.css">
+    <!-- Error modal -->
+
+    <!-- JS -->
+    <script type="text/javascript" src="movies_files/jquery-2.1.1.min.js"></script>
+    <script type="text/javascript" src="movies_files/canvasFont.js"></script>
+    <script type="text/javascript" src="movies_files/download.js"></script>
+    <script type="text/javascript" src="movies_files/test.json"></script>
+    <script type="text/javascript" src="movies_files/script_oracle.json"></script>
+    <script type="text/javascript" src="movies_files/script_postgres.json"></script>
+    <script type="text/javascript" src="movies_files/script_mysql.json"></script>
+    <script type="text/javascript" src="movies_files/script_sqlite.json"></script>
+    <script type="text/javascript" src="movies_files/script_mariaDB.json"></script>
+    <script type="text/javascript" src="movies_files/joint.js"></script>
+    <script type="text/javascript" src="movies_files/error.js"></script>
+    <script type="text/javascript" src="movies_files/raven.min.js" crossorigin="anonymous"></script>
+    <script> Raven.config('https://54b5c2175dbc43d895e5a2396cb5aa83:885d7ec420ce4b70b91742c643ad8e3c@sentry.io/239357').install(); </script>
+    <script type="text/javascript" src="movies_files/utils.js"></script>
+    <script type="text/javascript" src="movies_files/ready.js"></script>
+    <script type="text/javascript" src="movies_files/onda.js"></script>
+    <script type="text/javascript" src="movies_files/ion.sound.min.js"></script>
+    <script type="text/javascript" src="movies_files/classes.js"></script>
+    <script type="text/javascript" src="movies_files/undo_redo.js"></script>
+    <script type="text/javascript" src="movies_files/weak_relations.js"></script>
+    <script type="text/javascript" src="movies_files/generator.js"></script>
+    <script type="text/javascript" src="movies_files/generate_physical.js"></script>
+    <script type="text/javascript" src="movies_files/inheritance.js"></script>
+    <script type="text/javascript" src="movies_files/utils.js"></script>
+    <script type="text/javascript" src="movies_files/sequences.js"></script>
+    <script type="text/javascript" src="movies_files/canvas2image.js"></script>
+    <script type="text/javascript" src="movies_files/jquery.joyride-2.1.js"></script>
+    <!-- Then attach the Joyride plugin -->
+    <script type="text/javascript" src="movies_files/bootstrap.min.js"></script>
+    <script type="text/javascript" src="movies_files/jquery-ui.js"></script><!-- Error modal -->
+    <!--<script type="text/javascript" src="js/Sortable.js"></script>-->
+    <script>
+        /*$(function  () {
+            Sortable.create(selections);
+            console.log('wdfasgghj,hnhg gshffhgmh56g4');
+            });*/
+    </script>
+    <style type="text/css">
+        .navbar-default{
+            margin-top:-10px;
+            height:64px
+        }
+        .navbar{
+            border-radius:0;
+            display: flex;
+        }
+    </style>
+<style type="text/css">
+    @font-face{font-family:"Roboto";src:url(moz-extension://dcbff76a-0eb5-4fe5-bc4e-cd7489c16a95/fonts/Roboto/roboto-100.woff) format("woff"),url(moz-extension://dcbff76a-0eb5-4fe5-bc4e-cd7489c16a95/fonts/Roboto/roboto-100.woff2) format("woff2"),url(moz-extension://dcbff76a-0eb5-4fe5-bc4e-cd7489c16a95/fonts/Roboto/roboto-100.ttf) format("truetype");font-style:normal;font-weight:100;font-display:swap}@font-face{font-family:"Roboto";src:url(moz-extension://dcbff76a-0eb5-4fe5-bc4e-cd7489c16a95/fonts/Roboto/roboto-300.woff) format("woff"),url(moz-extension://dcbff76a-0eb5-4fe5-bc4e-cd7489c16a95/fonts/Roboto/roboto-300.woff2) format("woff2"),url(moz-extension://dcbff76a-0eb5-4fe5-bc4e-cd7489c16a95/fonts/Roboto/roboto-300.ttf) format("truetype");font-style:normal;font-weight:300;font-display:swap}@font-face{font-family:"Roboto";src:url(moz-extension://dcbff76a-0eb5-4fe5-bc4e-cd7489c16a95/fonts/Roboto/roboto-400.woff) format("woff"),url(moz-extension://dcbff76a-0eb5-4fe5-bc4e-cd7489c16a95/fonts/Roboto/roboto-400.woff2) format("woff2"),url(moz-extension://dcbff76a-0eb5-4fe5-bc4e-cd7489c16a95/fonts/Roboto/roboto-400.ttf) format("truetype");font-style:normal;font-weight:400;font-display:swap}@font-face{font-family:"Roboto";src:url(moz-extension://dcbff76a-0eb5-4fe5-bc4e-cd7489c16a95/fonts/Roboto/roboto-500.woff) format("woff"),url(moz-extension://dcbff76a-0eb5-4fe5-bc4e-cd7489c16a95/fonts/Roboto/roboto-500.woff2) format("woff2"),url(moz-extension://dcbff76a-0eb5-4fe5-bc4e-cd7489c16a95/fonts/Roboto/roboto-500.ttf) format("truetype");font-style:normal;font-weight:500;font-display:swap}@font-face{font-family:"Roboto";src:url(moz-extension://dcbff76a-0eb5-4fe5-bc4e-cd7489c16a95/fonts/Roboto/roboto-700.woff) format("woff"),url(moz-extension://dcbff76a-0eb5-4fe5-bc4e-cd7489c16a95/fonts/Roboto/roboto-700.woff2) format("woff2"),url(moz-extension://dcbff76a-0eb5-4fe5-bc4e-cd7489c16a95/fonts/Roboto/roboto-700.ttf) format("truetype");font-style:normal;font-weight:700;font-display:swap}@font-face{font-family:"Roboto";src:url(moz-extension://dcbff76a-0eb5-4fe5-bc4e-cd7489c16a95/fonts/Roboto/roboto-900.woff) format("woff"),url(moz-extension://dcbff76a-0eb5-4fe5-bc4e-cd7489c16a95/fonts/Roboto/roboto-900.woff2) format("woff2"),url(moz-extension://dcbff76a-0eb5-4fe5-bc4e-cd7489c16a95/fonts/Roboto/roboto-900.ttf) format("truetype");font-style:normal;font-weight:900;font-display:swap}@font-face{font-family:"Rebond";src:url(moz-extension://dcbff76a-0eb5-4fe5-bc4e-cd7489c16a95/fonts/Rebond/rebond-400.woff) format("woff"),url(moz-extension://dcbff76a-0eb5-4fe5-bc4e-cd7489c16a95/fonts/Rebond/rebond-400.woff2) format("woff2"),url(moz-extension://dcbff76a-0eb5-4fe5-bc4e-cd7489c16a95/fonts/Rebond/rebond-400.ttf) format("truetype");font-style:normal;font-weight:400;font-display:swap}@font-face{font-family:"Rebond";src:url(moz-extension://dcbff76a-0eb5-4fe5-bc4e-cd7489c16a95/fonts/Rebond/rebond-500.woff) format("woff"),url(moz-extension://dcbff76a-0eb5-4fe5-bc4e-cd7489c16a95/fonts/Rebond/rebond-500.woff2) format("woff2"),url(moz-extension://dcbff76a-0eb5-4fe5-bc4e-cd7489c16a95/fonts/Rebond/rebond-500.ttf) format("truetype");font-style:normal;font-weight:500;font-display:swap}@font-face{font-family:"Rebond";src:url(moz-extension://dcbff76a-0eb5-4fe5-bc4e-cd7489c16a95/fonts/Rebond/rebond-600.woff) format("woff"),url(moz-extension://dcbff76a-0eb5-4fe5-bc4e-cd7489c16a95/fonts/Rebond/rebond-600.woff2) format("woff2"),url(moz-extension://dcbff76a-0eb5-4fe5-bc4e-cd7489c16a95/fonts/Rebond/rebond-600.ttf) format("truetype");font-style:normal;font-weight:600;font-display:swap}@font-face{font-family:"Rebond";src:url(moz-extension://dcbff76a-0eb5-4fe5-bc4e-cd7489c16a95/fonts/Rebond/rebond-700.woff) format("woff"),url(moz-extension://dcbff76a-0eb5-4fe5-bc4e-cd7489c16a95/fonts/Rebond/rebond-700.woff2) format("woff2"),url(moz-extension://dcbff76a-0eb5-4fe5-bc4e-cd7489c16a95/fonts/Rebond/rebond-700.ttf) format("truetype");font-style:normal;font-weight:700;font-display:swap}
+    #__wikibuy__ .__wikibuy.__onTop,body~div:not(#gdx-bubble-host),#piggyWrapper,#honeyContainer,#earny-root{position:absolute !important;z-index:100000 !important}.mm-slideout{z-index:initial}.sorry-for-this__empty-styles{position:relative;z-index:10000}
+    #bddbdhcgdadaffabjbffdfaecehbacbf div:empty {
+      display: block !important;
+    }
+  </style><style data-styled="active" data-styled-version="5.3.9">.dWTrLf{visibility:hidden;}.igvzJt{font-family:roboto;font-weight:100;}.igvzJr{font-family:roboto;font-weight:300;}.igvzJo{font-family:roboto;font-weight:400;}.igvzJp{font-family:roboto;font-weight:500;}.igvzJn{font-family:roboto;font-weight:700;}.igvzJl{font-family:roboto;font-weight:900;}.uAvZv{font-family:rebond;font-weight:400;}.uAvZu{font-family:rebond;font-weight:500;}.uAvZx{font-family:rebond;font-weight:600;}.uAvZw{font-family:rebond;font-weight:700;}</style></head>
+<body style="">
+    <nav class="navbar navbar-default">
+        <!-- Logo -->
+        <div class="logo-container">
+            <button id="logo-bt" onclick="showInfo()"><img src="movies_files/onda.png"></button>
+        </div>
+
+        <!-- Toolbar -->
+        <div class="toolbar-container" onclick="hideInfo()">
+            <!-- Operations -->
+            <div class="operations-container" onclick="hideInfo()">
+                <button class="operations_buttons" id="operations-bt-new-file" onclick="new_file()">
+                    <img id="img-new" src="movies_files/new_file.png">
+                </button>
+                <label class="operations-open" id="operations-lb-open" for="operations-bt-open">
+                    <img id="img-open" src="movies_files/open.png">
+                </label>
+                <input class="operations_buttons" id="operations-bt-open" type="file">
+                <button class="operations_buttons" id="operations-bt-save" data-toggle="modal" data-target="#myModal">
+                    <img id="img-save" src="movies_files/save.png">
+                </button>
+                <button class="operations_buttons" id="operations-bt-export" data-toggle="modal" data-target="#modalPNG">
+                    <img id="img-export" src="movies_files/export.png">
+                </button>
+                <button class="operations_buttons" id="operations-bt-zoom-in">
+                    <img id="img-zoom-in" src="movies_files/zoom_in.png">
+                </button>
+                <button class="operations_buttons" id="operations-bt-zoom-out">
+                    <img id="img-zoom-out" src="movies_files/zoom_out.png">
+                </button>
+                <!--<button class="operations_buttons last" id="help" onclick="runTutorial()" defaultIcon="help">
+                    <img id="img-help" src="icons/help.png"/>
+                </button>-->
+            </div>
+
+            <!-- Tools -->
+            <div class="tools-container" onclick="hideInfo()">
+                <button class="tools_buttons first" id="tools-bt-add-table" onclick="create_new_table()">
+                    <img id="img-add" src="movies_files/create_table.png">
+                </button>
+                <button class="table_relation" id="normal" onclick="setup_table_relation('normal')" defaulticon="n_m">
+                    <img id="img-normal" src="movies_files/n_m.png">
+                </button>
+                <button class="table_relation" id="parenting" onclick="setup_table_relation('parenting')" defaulticon="parenting">
+                    <img id="img-parenting" src="movies_files/parenting.png">
+                </button>
+                <button class="table_relation" id="sequence" onclick="create_new_sequence()" defaulticon="sequence">
+                    <img id="img-sequence" src="movies_files/sequence.png">
+                </button>
+                <!--  <button class="table_relation" id="sidebar" defaultIcon="sidebar" >
+                     <img id="img-sequence" src="icons/sidebar.png"/>
+                 </button> -->
+                <!--<button class="table_relation" id="operations-bt-undo" defaultIcon="undo" >
+                    <img id="img-sequence" src="icons/undo.png"/>
+                </button>
+                <button class="table_relation" id="operations-bt-redo" defaultIcon="redo" >
+                    <img id="img-sequence" src="icons/redo.png"/>
+                </button>-->
+            </div>
+
+            <!-- SQL Editor Buttons -->
+            <!--<div class="tools-container" onclick="hideInfo()">
+                <button class="tools_buttons first" id="run_SQL" onclick="">
+                    <img id="img-run-SQL-editor" src="icons/run_SQL.png"/>
+                </button>
+                <button class="tools_buttons first" id="clear_results" onclick="">
+                    <img id="img-clear-SQL-result" src="icons/eraser.png"/>
+                </button>
+
+            </div>-->
+            <!-- Database -->
+            <div class="tools-container">
+                <div class="styled-select blue semi-square first">
+                    <select class="list1" id="_normalization" onchange="changeNormalization(this.value);">
+                        <option class="option2" value="false">Simplified</option>
+                        <option class="option2" value="true" selected="selected">Normal</option>
+                    </select>
+                </div>
+            </div>
+
+            
+            <div class="styled-select2 blue2 semi-square2">
+                <select class="list1" id="_database" onchange="redraw_view(this.value);">
+                    <option class="option2" value="PostgreSQL" selected="selected">PostgreSQL 16.1</option>
+                    <option class="option2" value="Oracle">Oracle 12c</option>
+                    <option class="option2" value="MySQL">MySQL 5.7</option>
+                    <option class="option2" value="MariaDB">MariaDB 10.3</option>
+                    <option class="option2" value="SQLite">SQLite 3.21.0</option>
+                </select>
+            </div>
+            <!-- View -->
+            <div class="separator"></div>
+            <div class="view-container first-toolbar" onclick="hideInfo()">
+                <button class="view-container-switches" id="view-bt-conceptual" onclick="switch_view(0)" style="color:#fff; background-color: #428bca;">
+                    Conceptual
+                </button>
+                <button class="view-container-switches" id="view-bt-physical" onclick="switch_view(1)">Physical</button>
+                <button class="view-container-switches" id="view-bt-scripts" onclick="switch_view(2)">Script</button>
+                <!--<button class="view-container-switches" id="view-bt-SQLEditor"onclick="switch_view(3)">SQLEditor</button>-->
+            </div>
+
+
+
+        </div>
+    </nav>
+
+<!-- Status -->
+
+<div id="status_container" style="visibility: visible; display: none; opacity: 1;">
+    <span class="status-notification" id="status-bar">Field name updated</span>
+</div>
+
+<!-- Toolbar Label -->
+<div class="toolbar-label-container" onclick="hideInfo()">
+    <label class="label-open" id="label-bt-open" style="opacity: 0; left: 88px; top: -13px;">Open Conceptual Diagram</label>
+    <label class="label-new-file" id="label-bt-new-file">New Diagram</label>
+    <label class="label-save" id="label-bt-save" style="opacity: 0; left: 132.5px; top: -13px;">Save Conceptual Diagram (.json)</label>
+    <label class="label-export" id="label-bt-export" style="opacity: 0; left: 170.5px; top: -13px;">Export Conceptual Diagram (.png)</label>
+    <label class="label-zoom-in" id="label-bt-zoom-in" style="opacity: 0; left: 208.5px;">Zoom In</label>
+    <label class="label-zoom-out" id="label-bt-zoom-out" style="opacity: 0; left: 246.5px; top: -13px;">Zoom Out</label>
+    <label class="label-add-table" id="label-bt-add-table" style="opacity: 0; left: 295.5px; top: -13px;">Add Entity</label>
+    <label class="label-normal" id="label-normal" style="opacity: 0; left: 360px; top: -13px;">Add Relation</label>
+    <label class="label-parenting" id="label-parenting" style="opacity: 0; left: 390px; top: -13px;">Add Inheritance Relation</label>
+    <label class="label-sequence" id="label-sequence" style="opacity: 0; left: 409.5px; top: -13px;">Add Sequence</label>
+    <label class="label-help" id="label-help">See Tutorial</label>
+    <label class="label-help" id="label-sidebar">Hide Sidebar</label>
+    <label class="label-help" id="label-sidebar2">Show Sidebar</label>
+    <label class="label-help" id="label-runSQL">Run SQL Query</label>
+    <label class="label-help" id="label-clearSQL">Clear Results</label>
+
+</div>
+
+<!-- Paper -->
+<div class="conceptual-container" id="paper_container" onclick="hideInfo()">
+    <defs>
+        <style type="text/css" href="export/fonts.css"></style>
+    </defs>
+    <div class="tooltip-container" id="tooltip_container" onclick="hideInfo()" style="visibility: hidden;"> </div>
+<svg xmlns="http://www.w3.org/2000/svg" xlink="http://www.w3.org/1999/xlink" version="1.1" id="v-2" width="1589" height="861"><defs id="v-4"></defs><g id="v-3" class="viewport" transform="translate(193,10) scale(1,1)"><g id="j_1" model-id="58ecfb70-a82b-4954-b552-391a8a1b4ff5" class="element basic Conceptual_TableElement" fill="#FFFFFF" stroke="none" transform="translate(354,239)"><g class="rotatable" id="v-5" transform="rotate(0,150,60)"><g class="scalable" id="v-14" transform="scale(3,1.2)"><rect vector-effect="non-scaling-stroke" class="shape_base" id="shape-base" width="100" height="100" fill="#EEE" stroke="black" stroke-width="1"></rect><line vector-effect="non-scaling-stroke" class="shape_divisor" id="v-7" x1="0" x2="100" y1="21.666666666666668" y2="21.666666666666668" stroke="black" stroke-width="1"></line></g><text id="title" font-family="Ubuntu Mono" y="0.8em" display="null" xml:space="preserve" font-size="16" fill="black" transform="translate(129.5,5.0000003178914385)">Movie</text><text id="fields" font-family="Ubuntu Mono" y="0.8em" display="null" xml:space="preserve" font-size="14" fill="black" transform="translate(6,31.000001970926924)"><tspan dy="0em" x="0" id="v-52">MovieID          BInt   PK       AU</tspan><tspan dy="1em" x="0" id="v-53">Description      Text               </tspan><tspan dy="1em" x="0" id="v-54">Release Date     Date      NN       </tspan><tspan dy="1em" x="0" id="v-55">Duration         Float     NN       </tspan><tspan dy="1em" x="0" id="v-56">Rating           Float     NN       </tspan><tspan dy="1em" x="0" id="v-57">Total_Ratings    Int       NN       </tspan></text><g class="scalable" id="v-15" transform="scale(3,1.2)"><rect vector-effect="non-scaling-stroke" class="shape_base_aux" id="v-6" width="100" height="100" fill="#EEE" stroke="black" stroke-width="1" opacity="0"></rect></g></g></g><g id="j_2" model-id="b54d9c1c-aca9-408d-9890-90d4a337e676" class="element basic Conceptual_TableElement" fill="#FFFFFF" stroke="none" transform="translate(852,302)"><g class="rotatable" id="v-58" transform="rotate(0,150,39)"><g class="scalable" id="v-64" transform="scale(3,0.78)"><rect vector-effect="non-scaling-stroke" class="shape_base" id="shape-base" width="100" height="100" fill="#EEE" stroke="black" stroke-width="1"></rect><line vector-effect="non-scaling-stroke" class="shape_divisor" id="v-60" x1="0" x2="100" y1="33.33333333333333" y2="33.33333333333333" stroke="black" stroke-width="1"></line></g><text id="title" font-family="Ubuntu Mono" y="0.8em" display="null" xml:space="preserve" font-size="16" fill="black" transform="translate(103.5,5)">PlataformUser</text><text id="fields" font-family="Ubuntu Mono" y="0.8em" display="null" xml:space="preserve" font-size="14" fill="black" transform="translate(6,30.999999999999996)"><tspan dy="0em" x="0" id="v-84">Username         VChr   PK          </tspan><tspan dy="1em" x="0" id="v-85">Password         VChr      NN       </tspan><tspan dy="1em" x="0" id="v-86">email            VChr      NN       </tspan></text><g class="scalable" id="v-65" transform="scale(3,0.78)"><rect vector-effect="non-scaling-stroke" class="shape_base_aux" id="v-59" width="100" height="100" fill="#EEE" stroke="black" stroke-width="1" opacity="0"></rect></g></g></g><g id="j_3" model-id="98118169-f74c-4eb2-b3ba-cc7d3d16f7dc" class="element basic Conceptual_TableElement" fill="#FFFFFF" stroke="none" transform="translate(500,568)"><g class="rotatable" id="v-87" transform="rotate(0,150,46)"><g class="scalable" id="v-94" transform="scale(3,0.92)"><rect vector-effect="non-scaling-stroke" class="shape_base_highlighted" id="shape-base" width="100" height="100" fill="#EEE" stroke="black" stroke-width="1"></rect><line vector-effect="non-scaling-stroke" class="shape_divisor" id="v-89" x1="0" x2="100" y1="28.26086956521739" y2="28.26086956521739" stroke="black" stroke-width="1"></line></g><text id="title" font-family="Ubuntu Mono" y="0.8em" display="null" xml:space="preserve" font-size="16" fill="black" transform="translate(122,5)">Ratings</text><text id="fields" font-family="Ubuntu Mono" y="0.8em" display="null" xml:space="preserve" font-size="14" fill="black" transform="translate(6,31)"><tspan dy="0em" x="0" id="v-494">RatingID         BInt   PK          </tspan><tspan dy="1em" x="0" id="v-495">Rating_Number    SInt   PK          </tspan><tspan dy="1em" x="0" id="v-496">Ranting_Date     Date      NN       </tspan><tspan dy="1em" x="0" id="v-497">Comment          Text               </tspan></text><g class="scalable" id="v-95" transform="scale(3,0.92)"><rect vector-effect="non-scaling-stroke" class="shape_base_aux" id="v-88" width="100" height="100" fill="#EEE" stroke="black" stroke-width="1" opacity="0"></rect></g></g></g><g id="j_4" model-id="c3b1bee9-f7b2-4942-8dbe-5ab3c5133e8c" class="element basic Conceptual_TableElement" fill="#FFFFFF" stroke="none" transform="translate(-65,570)"><g class="rotatable" id="v-124" transform="rotate(0,150,39)"><g class="scalable" id="v-130" transform="scale(3,0.78)"><rect vector-effect="non-scaling-stroke" class="shape_base" id="shape-base" width="100" height="100" fill="#EEE" stroke="black" stroke-width="1"></rect><line vector-effect="non-scaling-stroke" class="shape_divisor" id="v-126" x1="0" x2="100" y1="33.33333333333333" y2="33.33333333333333" stroke="black" stroke-width="1"></line></g><text id="title" font-family="Ubuntu Mono" y="0.8em" display="null" xml:space="preserve" font-size="16" fill="black" transform="translate(123.5,5)">Director</text><text id="fields" font-family="Ubuntu Mono" y="0.8em" display="null" xml:space="preserve" font-size="14" fill="black" transform="translate(6,30.999999999999996)"><tspan dy="0em" x="0" id="v-150">DirectorID       BInt   PK          </tspan><tspan dy="1em" x="0" id="v-151">Name             VChr      NN       </tspan><tspan dy="1em" x="0" id="v-152">Biography        Text               </tspan></text><g class="scalable" id="v-131" transform="scale(3,0.78)"><rect vector-effect="non-scaling-stroke" class="shape_base_aux" id="v-125" width="100" height="100" fill="#EEE" stroke="black" stroke-width="1" opacity="0"></rect></g></g></g><g id="j_5" model-id="86ef995f-13eb-49c4-b5be-21f9348a3e7a" class="element basic Conceptual_TableElement" fill="#FFFFFF" stroke="none" transform="translate(-176,16)"><g class="rotatable" id="v-153" transform="rotate(0,150,32)"><g class="scalable" id="v-158" transform="scale(3,0.64)"><rect vector-effect="non-scaling-stroke" class="shape_base" id="shape-base" width="100" height="100" fill="#EEE" stroke="black" stroke-width="1"></rect><line vector-effect="non-scaling-stroke" class="shape_divisor" id="v-155" x1="0" x2="100" y1="40.625" y2="40.625" stroke="black" stroke-width="1"></line></g><text id="title" font-family="Ubuntu Mono" y="0.8em" display="null" xml:space="preserve" font-size="16" fill="black" transform="translate(130.5,5)">Genre</text><text id="fields" font-family="Ubuntu Mono" y="0.8em" display="null" xml:space="preserve" font-size="14" fill="black" transform="translate(6,31)"><tspan dy="0em" x="0" id="v-172">Genre_ID         BInt   PK       AU</tspan><tspan dy="1em" x="0" id="v-173">Gerne_Name       VChr      NN       </tspan></text><g class="scalable" id="v-159" transform="scale(3,0.64)"><rect vector-effect="non-scaling-stroke" class="shape_base_aux" id="v-154" width="100" height="100" fill="#EEE" stroke="black" stroke-width="1" opacity="0"></rect></g></g></g><g id="j_6" model-id="f923665d-e246-4ff3-96e8-f3df64c2ae6b" class="link"><path class="connection" stroke="black" fill="none" id="v-174" d="M 939 390 826 477.5 728 553"></path><path class="marker-source" fill="none" stroke="black" id="v-175" d="M 0 10 L 10 10 L 10 20 M 10 10 L 10 0 M 10 10 L 16 10 L 16 20 M 16 10 L 16 0" transform="translate(958.1198120117188,387.9087219238281) scale(1,1) rotate(-217.73304765201556)"></path><path class="marker-target" fill="none" stroke="black" id="v-176" d="M 0 0 L 16 0 M 16 0 L 0 10 M 16 0 L 0 -10 M 20 0 m -4 0 a 4 4 0 1 1 8 0 a 4 4 0 1 1 -8 0" transform="translate(709,568) scale(1,1) rotate(-37.72210242229307)"></path><path class="connection-wrap" fill="none" id="v-177" d="M 939 390 826 477.5 728 553"></path><g class="labels" id="v-178"><g class="label" id="v-187" transform="translate(833.593017578125, 471.6204528808594)"><rect x="-9" y="-12.5" width="19" height="19" fill="white" rx="3" ry="3"></rect><text text-anchor="middle" font-size="14" id="v-188" y="0.8em" display="null" xml:space="preserve" transform="translate(0,-9.5)">Do</text></g></g><g class="marker-vertices" fill="none" id="v-179"><g class="marker-vertex-group" transform="translate(826, 477.5)" id="v-182"><circle opacity="0" class="marker-vertex" idx="0" r="10"></circle><path opacity="0" class="marker-vertex-remove-area" idx="0" d="M16,5.333c-7.732,0-14,4.701-14,10.5c0,1.982,0.741,3.833,2.016,5.414L2,25.667l5.613-1.441c2.339,1.317,5.237,2.107,8.387,2.107c7.732,0,14-4.701,14-10.5C30,10.034,23.732,5.333,16,5.333z" transform="translate(5, -33)"></path><path opacity="0" class="marker-vertex-remove" idx="0" transform="scale(.8) translate(9.5, -37)" d="M24.778,21.419 19.276,15.917 24.777,10.415 21.949,7.585 16.447,13.087 10.945,7.585 8.117,10.415 13.618,15.917 8.116,21.419 10.946,24.248 16.447,18.746 21.948,24.248z"><title>Remove vertex.</title></path></g></g><g class="link-tools" id="v-180"><g class="link-tools" opacity="0" id="v-181" transform="translate(907.3732299804688, 414.48974609375) "></g></g></g><g id="j_7" model-id="fec9ff14-5b79-4d06-bc67-e38ad155f705" class="link"><path class="connection" stroke="black" fill="none" id="v-189" d="M 539 374 577 456.5 619 546"></path><path class="marker-source" fill="none" stroke="black" id="v-190" d="M 0 10 L 10 10 L 10 20 M 10 10 L 10 0 M 10 10 L 16 10 L 16 20 M 16 10 L 16 0" transform="translate(541.07958984375,354.8094177246094) scale(1,1) rotate(65.22485394519538)"></path><path class="marker-target" fill="none" stroke="black" id="v-191" d="M 0 0 L 16 0 M 16 0 L 0 10 M 16 0 L 0 -10 M 20 0 m -4 0 a 4 4 0 1 1 8 0 a 4 4 0 1 1 -8 0" transform="translate(629,568) scale(1,1) rotate(-115.00282310966325)"></path><path class="connection-wrap" fill="none" id="v-192" d="M 539 374 577 456.5 619 546"></path><g class="labels" id="v-193"><g class="label" id="v-202" transform="translate(578.7064819335938, 460.136474609375)"><rect x="-13" y="-12.5" width="26" height="19" fill="white" rx="3" ry="3"></rect><text text-anchor="middle" font-size="14" id="v-203" y="0.8em" display="null" xml:space="preserve" transform="translate(0,-9.5)">Has</text></g></g><g class="marker-vertices" fill="none" id="v-194"><g class="marker-vertex-group" transform="translate(577, 456.5)" id="v-197"><circle opacity="0" class="marker-vertex" idx="0" r="10"></circle><path opacity="0" class="marker-vertex-remove-area" idx="0" d="M16,5.333c-7.732,0-14,4.701-14,10.5c0,1.982,0.741,3.833,2.016,5.414L2,25.667l5.613-1.441c2.339,1.317,5.237,2.107,8.387,2.107c7.732,0,14-4.701,14-10.5C30,10.034,23.732,5.333,16,5.333z" transform="translate(5, -33)"></path><path opacity="0" class="marker-vertex-remove" idx="0" transform="scale(.8) translate(9.5, -37)" d="M24.778,21.419 19.276,15.917 24.777,10.415 21.949,7.585 16.447,13.087 10.945,7.585 8.117,10.415 13.618,15.917 8.116,21.419 10.946,24.248 16.447,18.746 21.948,24.248z"><title>Remove vertex.</title></path></g></g><g class="link-tools" id="v-195"><g class="link-tools" opacity="0" id="v-196" transform="translate(555.734375, 410.33123779296875) "></g></g></g><g id="j_8" model-id="ef459be7-4d50-49fa-9982-14d5b84becdc" class="link"><path class="connection" stroke="black" fill="none" id="v-204" d="M 410 369 294.5 454 151 560"></path><path class="marker-source" fill="none" stroke="black" id="v-205" d="M 0 0 L 16 0 M 16 0 L 0 10 M 16 0 L 0 -10 M 16 10 L 16 -10" transform="translate(423,359) scale(1,1) rotate(-216.4755091742474)"></path><path class="marker-target" fill="none" stroke="black" id="v-206" d="M 0 0 L 16 0 M 16 0 L 0 10 M 16 0 L 0 -10 M 16 10 L 16 -10" transform="translate(138,570) scale(1,1) rotate(-36.54636351577511)"></path><path class="connection-wrap" fill="none" id="v-207" d="M 410 369 294.5 454 151 560"></path><g class="labels" id="v-208"><g class="label" id="v-217" transform="translate(280.42431640625, 464.3973693847656)"><rect x="-13" y="-12.5" width="26" height="19" fill="white" rx="3" ry="3"></rect><text text-anchor="middle" font-size="14" id="v-218" y="0.8em" display="null" xml:space="preserve" transform="translate(0,-9.5)">Has</text></g></g><g class="marker-vertices" fill="none" id="v-209"><g class="marker-vertex-group" transform="translate(294.5, 454)" id="v-212"><circle opacity="0" class="marker-vertex" idx="0" r="10"></circle><path opacity="0" class="marker-vertex-remove-area" idx="0" d="M16,5.333c-7.732,0-14,4.701-14,10.5c0,1.982,0.741,3.833,2.016,5.414L2,25.667l5.613-1.441c2.339,1.317,5.237,2.107,8.387,2.107c7.732,0,14-4.701,14-10.5C30,10.034,23.732,5.333,16,5.333z" transform="translate(5, -33)"></path><path opacity="0" class="marker-vertex-remove" idx="0" transform="scale(.8) translate(9.5, -37)" d="M24.778,21.419 19.276,15.917 24.777,10.415 21.949,7.585 16.447,13.087 10.945,7.585 8.117,10.415 13.618,15.917 8.116,21.419 10.946,24.248 16.447,18.746 21.948,24.248z"><title>Remove vertex.</title></path></g></g><g class="link-tools" id="v-210"><g class="link-tools" opacity="0" id="v-211" transform="translate(377.78375244140625, 392.70892333984375) "></g></g></g><g id="j_9" model-id="3b892cb8-e595-472e-8c2a-f4d55d5ed2b8" class="link"><path class="connection" stroke="black" fill="none" id="v-219" d="M 56 87 239 173.5 355 229"></path><path class="marker-source" fill="none" stroke="black" id="v-220" d="M 0 0 L 16 0 M 16 0 L 0 10 M 16 0 L 0 -10 M 16 10 L 16 -10" transform="translate(42,80) scale(1,1) rotate(25.389923335081335)"></path><path class="marker-target" fill="none" stroke="black" id="v-221" d="M 0 0 L 16 0 M 16 0 L 0 10 M 16 0 L 0 -10 M 20 0 m -4 0 a 4 4 0 1 1 8 0 a 4 4 0 1 1 -8 0" transform="translate(377,239) scale(1,1) rotate(-154.60922125659357)"></path><path class="connection-wrap" fill="none" id="v-222" d="M 56 87 239 173.5 355 229"></path><g class="labels" id="v-223"><g class="label" id="v-232" transform="translate(205.62994384765625, 157.7267303466797)"><rect x="-13" y="-12.5" width="26" height="19" fill="white" rx="3" ry="3"></rect><text text-anchor="middle" font-size="14" id="v-233" y="0.8em" display="null" xml:space="preserve" transform="translate(0,-9.5)">Has</text></g></g><g class="marker-vertices" fill="none" id="v-224"><g class="marker-vertex-group" transform="translate(239, 173.5)" id="v-227"><circle opacity="0" class="marker-vertex" idx="0" r="10"></circle><path opacity="0" class="marker-vertex-remove-area" idx="0" d="M16,5.333c-7.732,0-14,4.701-14,10.5c0,1.982,0.741,3.833,2.016,5.414L2,25.667l5.613-1.441c2.339,1.317,5.237,2.107,8.387,2.107c7.732,0,14-4.701,14-10.5C30,10.034,23.732,5.333,16,5.333z" transform="translate(5, -33)"></path><path opacity="0" class="marker-vertex-remove" idx="0" transform="scale(.8) translate(9.5, -37)" d="M24.778,21.419 19.276,15.917 24.777,10.415 21.949,7.585 16.447,13.087 10.945,7.585 8.117,10.415 13.618,15.917 8.116,21.419 10.946,24.248 16.447,18.746 21.948,24.248z"><title>Remove vertex.</title></path></g></g><g class="link-tools" id="v-225"><g class="link-tools" opacity="0" id="v-226" transform="translate(92.16358947753906, 104.09371948242188) "></g></g></g></g></svg></div>
+<div class="script-container" id="script_container">
+    <textarea class="script-text-container" id="script_text_container" readonly="readonly"></textarea>
+</div>
+
+
+<!-- SQLEditor -->
+<div class="sql-editor-container" id="sql_editor_container" onclick="hideInfo()">
+
+    <!-- SQLEditor Query -->
+    <div class="sql-editor-text-container-div" id="sql_editor_text_container_div">
+            <textarea class="sql-editor-text-container" id="sql_editor_text_container" placeholder="Write your query here..."></textarea>
+    </div>
+
+    <!-- SQLEditor Results -->
+    <div class="sql-editor-results-container-div" id="sql_editor_results_container_div" onclick="hideInfo()">
+            <textarea class="sql-editor-results-container" id="sql_editor_results_container" placeholder="The result of your query will appear here" readonly="readonly" select=""></textarea>
+    </div>
+
+</div>
+
+<!-- Properties -->
+<div class="properties-container" id="properties_container" onclick="hideInfo()">
+    <div class="properties-header"> <label>Properties</label>
+        <button class="properties-pin-button" id="pin_bt" onclick="changeImage()">
+            <img id="img-properties-pin" src="movies_files/pin.png">
+        </button>
+    </div>
+    <div class="properties-table-name" id="properties_table_name"><label style="margin-left: 3px">Entity Name</label><input id="table-name-input" type="text" oninput="changing_table_name()" value="Ratings" style="color: black"><button id="tools-delete-table" onclick="delete_table()" style="padding-left: 0px; margin-right: 9px"> <img src="movies_files/clear.png"> </button></div>
+    <div class="properties-fields" id="properties_fields"><table style="width: 100%"><tbody><tr><th>Fields</th><th><div class="properties-add"><button id="tools-add-field" onclick="add_new_field()"><img src="movies_files/plus.png"></button></div></th></tr></tbody></table><div class="properties-field"><table class="properties-view-fields"><tbody><tr><td><input id="properties_field_0" class="" type="text" value="RatingID" size="10" oninput="changing_field_name(0)" onclick="perform_field_click(0)" style="width: 122px">&nbsp;<select id="field_types" onchange="change_field_type(0)" style="height: 23px; width: 118px; margin-left: 1px"><option id="field-type-js-0" class="field-type-js" alt="Logical Boolean (true/false)" title="Logical Boolean (true/false)" value="Boolean">Boolean</option><option id="field-type-js-1" class="field-type-js" alt="Signed two-byte integer" title="Signed two-byte integer" value="SmallInt">SmallInt</option><option id="field-type-js-2" class="field-type-js" alt="Signed four-byte integer" title="Signed four-byte integer" value="Integer">Integer</option><option id="field-type-js-3" class="field-type-js" alt="Signed eight-byte integer" title="Signed eight-byte integer" value="BigInt" selected="selected">BigInt</option><option id="field-type-js-4" class="field-type-js" alt="Single precision floating-point number (4 bytes)" title="Single precision floating-point number (4 bytes)" value="Float">Float</option><option id="field-type-js-5" class="field-type-js" alt="Double precision floating-point number (8 bytes)" title="Double precision floating-point number (8 bytes)" value="Double Precision">Double Precision</option><option id="field-type-js-6" class="field-type-js" alt="Exact numerical, precision p, scale s" title="Exact numerical, precision p, scale s" value="Number">Number</option><option id="field-type-js-7" class="field-type-js" alt="Calendar date (YYYY-MM-DD)" title="Calendar date (YYYY-MM-DD)" value="Date">Date</option><option id="field-type-js-8" class="field-type-js" alt="Date and time (YYYY-MM-DD hh:mm:ss)" title="Date and time (YYYY-MM-DD hh:mm:ss)" value="Timestamp">Timestamp</option><option id="field-type-js-9" class="field-type-js" alt="Fixed-length character string" title="Fixed-length character string" value="Character">Character</option><option id="field-type-js-10" class="field-type-js" alt="Variable-length character string" title="Variable-length character string" value="Varchar">Varchar</option><option id="field-type-js-11" class="field-type-js" alt="Variable-length large character string" title="Variable-length large character string" value="Text">Text</option><option id="field-type-js-12" class="field-type-js" alt="Binary Large Object" title="Binary Large Object" value="BLOB">BLOB</option></select></td><td><button id="changeFieldToUp" onclick="changeFieldPositionUp(0)" style="margin-right: 2px"><img class="properties-up" src="movies_files/up.png"></button> </td><td><button id="changeFieldToDown" onclick="changeFieldPositionDown(0)" style="margin-right: 2px"><img class="properties-down" src="movies_files/down.png"></button> </td><td><button id="property_remove_0" onclick="remove_field(0)"><img src="movies_files/clear.png"></button> </td></tr></tbody></table><form id="property_0" style="display: none;" folded="true"><table></table><table> <tbody><tr> <td> <div class="align_cell_left"> Default Value</div> <div class="align_cell_right"> <input id="properties_default" class="properties-default" type="text" onkeypress="return ((event.charCode >= 48 &amp;&amp; event.charCode <= 57) || (event.charCode == 8 || event.which === 8);" size="8" oninput="change_field_param(0, 3 )"> </div> </td></tr><tr> <td> <div class="align_cell_left"> Primary Key </div> <div class="align_cell_right"><input id="properties-pk0" class="properties-pk" type="checkbox" value="pk" onclick="change_field_param(0, 0 )" checked="checked"> </div> </td> </tr><tr> <td> <div class="align_cell_left"> Not NULL </div> <div class="align_cell_right"><input id="properties-not-null_0" class="properties-not-null" type="checkbox" value="not-null" onclick="change_field_param(0, 1 )" checked="checked" disabled="disabled"> </div> </td> </tr><tr> <td> <div class="align_cell_left"> Unique </div> <div class="align_cell_right"><input id="properties-unique_0" class="properties-unique" type="checkbox" value="unique" onclick="change_field_param(0, 2 )" checked="checked" disabled="disabled"> </div> </td> </tr><tr> <td> <div class="align_cell_left"> Auto Increment </div> <div class="align_cell_right"><input id="properties-increment_0" class="properties-increment" type="checkbox" value="increment" onclick="change_field_param(0,4)"> </div> </td> </tr></tbody></table></form></div><div class="properties-field"><table class="properties-view-fields"><tbody><tr><td><input id="properties_field_1" class="" type="text" value="Rating_Number" size="10" oninput="changing_field_name(1)" onclick="perform_field_click(1)" style="width: 122px">&nbsp;<select id="field_types" onchange="change_field_type(1)" style="height: 23px; width: 118px; margin-left: 1px"><option id="field-type-js-0" class="field-type-js" alt="Logical Boolean (true/false)" title="Logical Boolean (true/false)" value="Boolean">Boolean</option><option id="field-type-js-1" class="field-type-js" alt="Signed two-byte integer" title="Signed two-byte integer" value="SmallInt" selected="selected">SmallInt</option><option id="field-type-js-2" class="field-type-js" alt="Signed four-byte integer" title="Signed four-byte integer" value="Integer">Integer</option><option id="field-type-js-3" class="field-type-js" alt="Signed eight-byte integer" title="Signed eight-byte integer" value="BigInt">BigInt</option><option id="field-type-js-4" class="field-type-js" alt="Single precision floating-point number (4 bytes)" title="Single precision floating-point number (4 bytes)" value="Float">Float</option><option id="field-type-js-5" class="field-type-js" alt="Double precision floating-point number (8 bytes)" title="Double precision floating-point number (8 bytes)" value="Double Precision">Double Precision</option><option id="field-type-js-6" class="field-type-js" alt="Exact numerical, precision p, scale s" title="Exact numerical, precision p, scale s" value="Number">Number</option><option id="field-type-js-7" class="field-type-js" alt="Calendar date (YYYY-MM-DD)" title="Calendar date (YYYY-MM-DD)" value="Date">Date</option><option id="field-type-js-8" class="field-type-js" alt="Date and time (YYYY-MM-DD hh:mm:ss)" title="Date and time (YYYY-MM-DD hh:mm:ss)" value="Timestamp">Timestamp</option><option id="field-type-js-9" class="field-type-js" alt="Fixed-length character string" title="Fixed-length character string" value="Character">Character</option><option id="field-type-js-10" class="field-type-js" alt="Variable-length character string" title="Variable-length character string" value="Varchar">Varchar</option><option id="field-type-js-11" class="field-type-js" alt="Variable-length large character string" title="Variable-length large character string" value="Text">Text</option><option id="field-type-js-12" class="field-type-js" alt="Binary Large Object" title="Binary Large Object" value="BLOB">BLOB</option></select></td><td><button id="changeFieldToUp" onclick="changeFieldPositionUp(1)" style="margin-right: 2px"><img class="properties-up" src="movies_files/up.png"></button> </td><td><button id="changeFieldToDown" onclick="changeFieldPositionDown(1)" style="margin-right: 2px"><img class="properties-down" src="movies_files/down.png"></button> </td><td><button id="property_remove_1" onclick="remove_field(1)"><img src="movies_files/clear.png"></button> </td></tr></tbody></table><form id="property_1" style="display: none;" folded="true"><table></table><table> <tbody><tr> <td> <div class="align_cell_left"> Default Value</div> <div class="align_cell_right"> <input id="properties_default" class="properties-default" type="text" onkeypress="return ((event.charCode >= 48 &amp;&amp; event.charCode <= 57) || (event.charCode == 8 || event.which === 8);" size="8" oninput="change_field_param(1, 3 )"> </div> </td></tr><tr> <td> <div class="align_cell_left"> Primary Key </div> <div class="align_cell_right"><input id="properties-pk1" class="properties-pk" type="checkbox" value="pk" onclick="change_field_param(1, 0 )" checked="checked"> </div> </td> </tr><tr> <td> <div class="align_cell_left"> Not NULL </div> <div class="align_cell_right"><input id="properties-not-null_1" class="properties-not-null" type="checkbox" value="not-null" onclick="change_field_param(1, 1 )" checked="checked" disabled="disabled"> </div> </td> </tr><tr> <td> <div class="align_cell_left"> Unique </div> <div class="align_cell_right"><input id="properties-unique_1" class="properties-unique" type="checkbox" value="unique" onclick="change_field_param(1, 2 )" checked="checked" disabled="disabled"> </div> </td> </tr><tr> <td> <div class="align_cell_left"> Auto Increment </div> <div class="align_cell_right"><input id="properties-increment_1" class="properties-increment" type="checkbox" value="increment" onclick="change_field_param(1,4)"> </div> </td> </tr></tbody></table></form></div><div class="properties-field"><table class="properties-view-fields"><tbody><tr><td><input id="properties_field_2" class="" type="text" value="Ranting_Date" size="10" oninput="changing_field_name(2)" onclick="perform_field_click(2)" style="width: 122px">&nbsp;<select id="field_types" onchange="change_field_type(2)" style="height: 23px; width: 118px; margin-left: 1px"><option id="field-type-js-0" class="field-type-js" alt="Logical Boolean (true/false)" title="Logical Boolean (true/false)" value="Boolean">Boolean</option><option id="field-type-js-1" class="field-type-js" alt="Signed two-byte integer" title="Signed two-byte integer" value="SmallInt">SmallInt</option><option id="field-type-js-2" class="field-type-js" alt="Signed four-byte integer" title="Signed four-byte integer" value="Integer">Integer</option><option id="field-type-js-3" class="field-type-js" alt="Signed eight-byte integer" title="Signed eight-byte integer" value="BigInt">BigInt</option><option id="field-type-js-4" class="field-type-js" alt="Single precision floating-point number (4 bytes)" title="Single precision floating-point number (4 bytes)" value="Float">Float</option><option id="field-type-js-5" class="field-type-js" alt="Double precision floating-point number (8 bytes)" title="Double precision floating-point number (8 bytes)" value="Double Precision">Double Precision</option><option id="field-type-js-6" class="field-type-js" alt="Exact numerical, precision p, scale s" title="Exact numerical, precision p, scale s" value="Number">Number</option><option id="field-type-js-7" class="field-type-js" alt="Calendar date (YYYY-MM-DD)" title="Calendar date (YYYY-MM-DD)" value="Date" selected="selected">Date</option><option id="field-type-js-8" class="field-type-js" alt="Date and time (YYYY-MM-DD hh:mm:ss)" title="Date and time (YYYY-MM-DD hh:mm:ss)" value="Timestamp">Timestamp</option><option id="field-type-js-9" class="field-type-js" alt="Fixed-length character string" title="Fixed-length character string" value="Character">Character</option><option id="field-type-js-10" class="field-type-js" alt="Variable-length character string" title="Variable-length character string" value="Varchar">Varchar</option><option id="field-type-js-11" class="field-type-js" alt="Variable-length large character string" title="Variable-length large character string" value="Text">Text</option><option id="field-type-js-12" class="field-type-js" alt="Binary Large Object" title="Binary Large Object" value="BLOB">BLOB</option></select></td><td><button id="changeFieldToUp" onclick="changeFieldPositionUp(2)" style="margin-right: 2px"><img class="properties-up" src="movies_files/up.png"></button> </td><td><button id="changeFieldToDown" onclick="changeFieldPositionDown(2)" style="margin-right: 2px"><img class="properties-down" src="movies_files/down.png"></button> </td><td><button id="property_remove_2" onclick="remove_field(2)"><img src="movies_files/clear.png"></button> </td></tr></tbody></table><form id="property_2" style="display: none;" folded="true"><table></table><table> <tbody><tr> <td> <div class="align_cell_left"> Default Value</div> <div class="align_cell_right"> <input id="properties_default" class="properties-default" type="text" size="8" oninput="change_field_param(2, 3 )"> </div> </td></tr><tr> <td> <div class="align_cell_left"> Primary Key </div> <div class="align_cell_right"><input id="properties-pk2" class="properties-pk" type="checkbox" value="pk" onclick="change_field_param(2, 0 )"> </div> </td> </tr><tr> <td> <div class="align_cell_left"> Not NULL </div> <div class="align_cell_right"><input id="properties-not-null_2" class="properties-not-null" type="checkbox" value="not-null" onclick="change_field_param(2, 1 )" checked="checked"> </div> </td> </tr><tr> <td> <div class="align_cell_left"> Unique </div> <div class="align_cell_right"><input id="properties-unique_2" class="properties-unique" type="checkbox" value="unique" onclick="change_field_param(2, 2 )"> </div> </td> </tr></tbody></table></form></div><div class="properties-field"><table class="properties-view-fields"><tbody><tr><td><input id="properties_field_3" class="" type="text" value="Comment" size="10" oninput="changing_field_name(3)" onclick="perform_field_click(3)" style="width: 122px">&nbsp;<select id="field_types" onchange="change_field_type(3)" style="height: 23px; width: 118px; margin-left: 1px"><option id="field-type-js-0" class="field-type-js" alt="Logical Boolean (true/false)" title="Logical Boolean (true/false)" value="Boolean">Boolean</option><option id="field-type-js-1" class="field-type-js" alt="Signed two-byte integer" title="Signed two-byte integer" value="SmallInt">SmallInt</option><option id="field-type-js-2" class="field-type-js" alt="Signed four-byte integer" title="Signed four-byte integer" value="Integer">Integer</option><option id="field-type-js-3" class="field-type-js" alt="Signed eight-byte integer" title="Signed eight-byte integer" value="BigInt">BigInt</option><option id="field-type-js-4" class="field-type-js" alt="Single precision floating-point number (4 bytes)" title="Single precision floating-point number (4 bytes)" value="Float">Float</option><option id="field-type-js-5" class="field-type-js" alt="Double precision floating-point number (8 bytes)" title="Double precision floating-point number (8 bytes)" value="Double Precision">Double Precision</option><option id="field-type-js-6" class="field-type-js" alt="Exact numerical, precision p, scale s" title="Exact numerical, precision p, scale s" value="Number">Number</option><option id="field-type-js-7" class="field-type-js" alt="Calendar date (YYYY-MM-DD)" title="Calendar date (YYYY-MM-DD)" value="Date">Date</option><option id="field-type-js-8" class="field-type-js" alt="Date and time (YYYY-MM-DD hh:mm:ss)" title="Date and time (YYYY-MM-DD hh:mm:ss)" value="Timestamp">Timestamp</option><option id="field-type-js-9" class="field-type-js" alt="Fixed-length character string" title="Fixed-length character string" value="Character">Character</option><option id="field-type-js-10" class="field-type-js" alt="Variable-length character string" title="Variable-length character string" value="Varchar">Varchar</option><option id="field-type-js-11" class="field-type-js" alt="Variable-length large character string" title="Variable-length large character string" value="Text" selected="selected">Text</option><option id="field-type-js-12" class="field-type-js" alt="Binary Large Object" title="Binary Large Object" value="BLOB">BLOB</option></select></td><td><button id="changeFieldToUp" onclick="changeFieldPositionUp(3)" style="margin-right: 2px"><img class="properties-up" src="movies_files/up.png"></button> </td><td><button id="changeFieldToDown" onclick="changeFieldPositionDown(3)" style="margin-right: 2px"><img class="properties-down" src="movies_files/down.png"></button> </td><td><button id="property_remove_3" onclick="remove_field(3)"><img src="movies_files/clear.png"></button> </td></tr></tbody></table><form id="property_3" style="display: none;" folded="true"><table></table><table> <tbody><tr> <td> <div class="align_cell_left"> Default Value</div> <div class="align_cell_right"> <input id="properties_default" class="properties-default" type="text" size="8" oninput="change_field_param(3, 3 )"> </div> </td></tr><tr> <td> <div class="align_cell_left">Length</div> <div class="align_cell_right"><input id="field_3arg_0" class="properties-arg" type="text" onkeypress="return ((event.charCode >= 48 &amp;&amp; event.charCode <= 57) || (event.charCode == 8 || event.which === 8);" value="512" size="8" oninput="change_field_arg(3,0)"> </div> </td></tr><tr> <td> <div class="align_cell_left"> Primary Key </div> <div class="align_cell_right"><input id="properties-pk3" class="properties-pk" type="checkbox" value="pk" onclick="change_field_param(3, 0 )"> </div> </td> </tr><tr> <td> <div class="align_cell_left"> Not NULL </div> <div class="align_cell_right"><input id="properties-not-null_3" class="properties-not-null" type="checkbox" value="not-null" onclick="change_field_param(3, 1 )"> </div> </td> </tr><tr> <td> <div class="align_cell_left"> Unique </div> <div class="align_cell_right"><input id="properties-unique_3" class="properties-unique" type="checkbox" value="unique" onclick="change_field_param(3, 2 )"> </div> </td> </tr></tbody></table></form></div></div>
+    <div class="properties_check_constraint" id="properties_check_constraint"><table style="width: 100%; margin-top: 25px; margin-left: 2px"><tbody><tr><th>Check Constraints</th><th><div class="properties-add" style="margin-right: 9px"><button id="tools-add-field-checkConstraint" onclick="add_new_checkConstraint()"><img src="movies_files/plus.png"></button></div></th></tr><tr><th><div class="properties-check-constraint"></div></th></tr><tr><td> Name &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <input id="properties-constraint-name_0" type="text" oninput="check_constraint_fields(0)" value="Ratings_Constrain" size="23" style="width: 163px"></td><td><button style="margin-left: 6px" class="check-constraint-rest" id="check_constraint_rest" onclick="checkConstraint_reset(0)"><img src="movies_files/clear.png"></button></td></tr><tr><td> Check</td></tr><tr><td> <textarea name="foo" id="properties-constraint-condition_0" placeholder="e.q, age &gt;18 AND city=‘Coimbra’" oninput="check_constraint_fields(0)" maxlength="1000" rows="3" cols="29" style="width: 88%">Rating_Number &lt;=5 and Rating_Number&gt;=0</textarea></td></tr></tbody></table></div>
+    <div class="properties-link" id="properties_link"></div>
+</div>
+<div class="mouseover-container" id="mouseover_container" onclick="hideInfo()" style="display: none;">
+    <button class="expand-properties" id="expand-bt" onclick="hideInfo()">
+        <img id="img-expand-properties" src="movies_files/expand.png">
+    </button>
+</div>
+
+
+
+<!-- Info -->
+	   
+<div id="info-container" class="hidden">
+    <h4><img src="movies_files/onda.png"> <b>ONDA</b> – Online Database Architect (v4)</h4>
+
+    <!--<p><a id="curr-btn-link" href="#"><u>Current version</u></a></p>-->
+    <div id="curr-version">
+    <p>
+		</p><div><b>Reference:</b> Nuno Laranjeiro, Alexandre Miguel Pinto, 
+"ONDA: ONLine Database Architect", arXiv preprint arXiv:2304.05520, 
+doi:10.48550/arXiv.2401.16552, URL 
+https://doi.org/10.48550/arXiv.2401.16552, 2024</div>	
+	<p></p>
+	<p>
+				</p><div><b>BibTeX: </b>article{onda2024,
+		  title        = {ONDA: ONLine Database Architect},
+		  author       = {Nuno Laranjeiro and Alexandre Miguel Pinto},
+		  year         = {2024},
+		  journal   = {arXiv preprint},		  
+		  eprint={2401.16552},
+		  primaryClass={cs.DB},
+		  doi          = {10.48550/arXiv.2401.16552},
+		  url          = {https://doi.org/10.48550/arXiv.2401.16552},
+}
+	</div>
+	<p></p>
+		
+    <hr style="border-top: 1px solid #ccc">
+    <p>
+        <b>Project Founders: </b>
+        <a href="mailto:ampinto@dei.uc.pt">Alexandre Pinto</a>, <a href="mailto:cnl@dei.uc.pt">Nuno Laranjeiro</a>
+	</p>
+
+    <p>
+        <b>Project Management: </b>
+        Alexandre Pinto (v1,v2), João Campos (v4), Nuno Laranjeiro (all)
+	</p>
+
+    <p>
+        <b>Technical Lead V1: </b>Alexandre Jesus<br>
+        <b>Developers: </b>André Maximino, Bruno Pedroso, David Martins, João Silas, João Valença, Micael Reis, Pedro Martins, Sara Monteiro
+    </p>
+
+    <p>
+        <b>Technical Lead V2: </b>Nino Matos<br>
+        <b>Developers: </b>Ana Duarte, Cena Helder, Diogo Carvalho, 
+Gonçalo Machado, Ivo Gouveia, José Miranda, Leonardo Toledo, Luís 
+Ventura, Magdalena Sikotowska, Mariana Leal, Sheran Colomer
+    </p>
+	<p>
+        <b>Technical Lead V3: </b>Adolfo Pinto<br>
+        <b>Developers: </b>Carlos Paiva, Eliseu Guimarães, João Jordão, José Marcelino, Ronaldo Juniór, Rui Silva
+    </p>
+		
+	<p>
+        <b>Developer V4: </b>Mariana Lança<br>
+    </p>
+
+    <p>
+        <b>Contact: </b><a href="mailto:onda@dei.uc.pt">onda@dei.uc.pt</a><br>
+        <b>Development Site: </b><a href="https://git.dei.uc.pt/onda/code" target="_blank">git.dei.uc.pt/onda/code</a><br>
+        <b>Icons by: </b><a href="http://icons8.com/" target="_blank">icons8.com</a><br>
+		<!--
+        <b>Supported browsers: </b> <img style="width: 60px; margin-left:10px; margin-bottom: 0px; margin-top: -15px;   " src="icons/browsers.png"/>
+			-->
+    </p>
+</div>
+
+         
+    <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/">
+        <img alt="Creative Commons License" style="border-width:0" src="movies_files/80x15.png">
+    </a>
+
+    <span xmlns:dct="http://purl.org/dc/terms/" property="dct:title">Online Database Architect</span>
+    by
+    <a xmlns:cc="http://creativecommons.org/ns#" href="https://onda.dei.uc.pt/" property="cc:attributionName" rel="cc:attributionURL">ONDA</a>
+    is licensed under a<p><a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/">Creative Commons
+    Attribution-NonCommercial-ShareAlike 4.0 International License</a>
+    </p><div>
+        <hr style="border-top: 1px solid #ccc">
+        <h5>Developed at: <a href="https://www.uc.pt/fctuc/dei/" target="_blank">Department of Informatics Engineering</a> |
+            <a href="https://www.uc.pt/" target="_blank">University of Coimbra</a><img style="width: 90px; margin-left:10px;" src="movies_files/fctuc-logo.png"></h5>
+    </div>
+    Version: 4.0.0 15-09-2022
+</div>
+
+<!-- Tutorial Container -->
+<div id="tutorial-container">
+    <ol id="tutorial">
+        <li data-button="Start tutorial"><p>Welcome to <b>ONDA</b>!<br><br>You can use the ENTER key to go to the next
+            slide<br><br>Close this window to skip tutorial.<br></p></li>
+        <li data-id="operations-bt-new-file"><p>Create a new file<br></p></li>
+        <li data-id="operations-lb-open"><p>Open existing diagram<br></p></li>
+        <li data-id="operations-bt-save"><p>Save created diagram (.json) <br></p></li>
+        <li data-id="operations-bt-export"><p>Export created diagram (.png) <br></p></li>
+        <li data-id="operations-bt-undo"><p>Undo<br></p></li>
+        <li data-id="operations-bt-redo"><p>Redo<br></p></li>
+        <li data-id="operations-bt-zoom-in"><p>Zoom in your diagram<br></p></li>
+        <li data-id="operations-bt-zoom-out"><p>Zoom out your diagram<br></p></li>
+        <li data-id="tools-bt-add-table"><p>Add a new entity<br></p></li>
+        <li data-id="normal"><p>Create relations between entities<br></p></li>
+        <li data-id="parenting"><p>Create inheritance relations<br></p></li>
+        <li data-id="sequence"><p>Add a new sequence<br></p></li>
+        <li data-id="dropshit"><p>Choose Database<br><br> You can select your database engine to generate the DDL
+            scripts<br></p></li>
+        <li data-id="dropshit_select"><p>Choose Normalization<br><br> You can select between Normal or Simplified
+            normalization!<br></p></li>
+        <li data-options="nubPosition:top-right" data-id="view-bt-conceptual"><p>Conceptual Model of the Diagram<br></p>
+        </li>
+        <li data-options="nubPosition:top-right" data-id="view-bt-physical"><p>Physical Model of the Diagram<br></p>
+        </li>
+        <li data-options="nubPosition:top-right" data-id="view-bt-scripts"><p>DDL Scripts of the Diagram<br><br> You can
+            use the DDL to generate a database<br></p></li>
+        <li data-options="nubPosition:top-right" data-id="view-bt-SQLEditor"><p>SQLEditor<br><br> You can use it to make
+            queries to a local database<br></p></li>
+        <li data-button="Let's do this!"><p>Thanks for using <b>ONDA</b>!<br></p></li>
+    </ol>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="myModal" role="dialog">
+    <div class="modal-dialog">
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">×</button>
+                <h4 class="modal-title">Save Diagram as JSON File</h4>
+            </div>
+            <div class="modal-body">
+                <input type="text" id="file_name" style="font-size:20px; border:none" placeholder="Conceptual Diagram"><br>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal" onclick="save_diagram()">Save
+                </button>
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="myModal_error" role="dialog">
+    <div class="modal-dialog">
+
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">×</button>
+                <h4 class="modal-title">Save Diagram as JSON File</h4>
+            </div>
+            <div class="modal-body">
+                <input type="text" id="file_name_error" style="font-size:20px; border:none" placeholder="Conceptual Diagram"><br>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal" onclick="save_diagram_and_reload()">
+                    Save
+                </button>
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="modalPNG" role="dialog">
+    <div class="modal-dialog">
+
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">×</button>
+                <h4 class="modal-title">Export to PNG File</h4>
+            </div>
+            <div class="modal-body">
+                <input type="text" id="filenameExp" style="font-size:20px; border:none" placeholder="Export to PNG"><br>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal" onclick="export_diagram()">Save
+                </button>
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="modalTXT" role="dialog">
+    <div class="modal-dialog">
+
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">×</button>
+                <h4 class="modal-title">Export to txt File</h4>
+            </div>
+            <div class="modal-body">
+                <input type="text" id="filenameTxt" style="font-size:20px; border:none" placeholder="Export to txt"><br>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal" onclick="export_diagram_txt()">Save
+                </button>
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="dialog-confirm" title="Oppss..." style="display: none;">
+    <p><span class="ui-icon ui-icon-alert" style="float:left; margin:0 12px 12px 0;"></span>An error has ocurred in
+        Onda. We will try to save your current diagram.</p>
+    <p>
+        Keep in mind that the current state of the diagram might be corrupted.
+    </p>
+</div>
+<script>window.onbeforeunload = function (e) {
+    return 'Do you want to leave this site?\nChanges you made may not be saved.';
+};</script>
+
+
+<div id="bddbdhcgdadaffabjbffdfaecehbacbf" style="border-block: initial; border-inline: initial; border-start-start-radius: initial; border-start-end-radius: initial; border-end-start-radius: initial; border-end-end-radius: initial; overflow-block: initial; overflow-inline: initial; overscroll-behavior-block: initial; overscroll-behavior-inline: initial; margin-block: initial; margin-inline: initial; scroll-margin-block: initial; scroll-margin-inline: initial; padding-block: initial; padding-inline: initial; scroll-padding-block: initial; scroll-padding-inline: initial; inset-block: initial; inset-inline: initial; block-size: initial; min-block-size: initial; max-block-size: initial; inline-size: initial; min-inline-size: initial; max-inline-size: initial; contain-intrinsic-block-size: initial; contain-intrinsic-inline-size: initial; background: initial; background-blend-mode: initial; border: initial; border-radius: initial; box-decoration-break: initial; -moz-float-edge: initial; display: initial; float: initial; clear: initial; vertical-align: initial; baseline-source: initial; overflow: initial; overflow-anchor: initial; transform: initial; rotate: initial; scale: initial; translate: initial; offset: initial; scroll-behavior: initial; scroll-snap-align: initial; scroll-snap-type: initial; scroll-snap-stop: initial; overscroll-behavior: initial; isolation: initial; break-after: initial; break-before: initial; break-inside: initial; resize: initial; perspective: initial; perspective-origin: initial; backface-visibility: initial; transform-box: initial; transform-style: initial; transform-origin: initial; contain: initial; content-visibility: initial; container: initial; appearance: initial; -moz-orient: initial; will-change: initial; shape-image-threshold: initial; shape-margin: initial; shape-outside: initial; touch-action: initial; -webkit-line-clamp: initial; scrollbar-gutter: initial; zoom: initial; columns: initial; column-fill: initial; column-rule: initial; column-span: initial; content: initial; counter-increment: initial; counter-reset: initial; counter-set: initial; opacity: initial; box-shadow: initial; clip: initial; filter: initial; backdrop-filter: initial; mix-blend-mode: initial; font: initial; font-synthesis: initial; font-palette: initial; math-depth: initial; math-style: initial; visibility: initial; writing-mode: initial; text-orientation: initial; print-color-adjust: initial; image-rendering: initial; image-orientation: initial; dominant-baseline: initial; text-anchor: initial; color-interpolation: initial; color-interpolation-filters: initial; fill: initial; fill-opacity: initial; fill-rule: initial; shape-rendering: initial; stroke: initial; stroke-width: initial; stroke-linecap: initial; stroke-linejoin: initial; stroke-miterlimit: initial; stroke-opacity: initial; stroke-dasharray: initial; stroke-dashoffset: initial; clip-rule: initial; marker: initial; paint-order: initial; border-collapse: initial; empty-cells: initial; caption-side: initial; border-spacing: initial; color: initial; text-transform: initial; hyphens: initial; -moz-text-size-adjust: initial; text-indent: initial; overflow-wrap: initial; word-break: initial; text-justify: initial; text-align-last: initial; text-align: initial; letter-spacing: initial; word-spacing: initial; white-space: initial; text-shadow: initial; text-emphasis: initial; text-emphasis-position: initial; tab-size: initial; line-break: initial; -webkit-text-fill-color: initial; -webkit-text-stroke: initial; ruby-align: initial; ruby-position: initial; text-combine-upright: initial; text-rendering: initial; text-underline-offset: initial; text-underline-position: initial; text-decoration-skip-ink: initial; hyphenate-character: initial; forced-color-adjust: initial; -webkit-text-security: initial; hyphenate-limit-chars: initial; text-wrap: initial; cursor: initial; pointer-events: initial; caret-color: initial; accent-color: initial; color-scheme: initial; scrollbar-color: initial; list-style: initial; quotes: initial; margin: initial; overflow-clip-margin: initial; scroll-margin: initial; outline: initial; outline-offset: initial; padding: initial; scroll-padding: initial; page: initial; inset: initial; flex-flow: initial; place-content: initial; place-items: initial; flex: initial; place-self: initial; order: initial; height: initial; min-height: initial; max-height: initial; width: initial; min-width: initial; max-width: initial; box-sizing: initial; object-fit: initial; object-position: initial; grid-area: initial; grid: initial; gap: initial; aspect-ratio: initial; contain-intrinsic-size: initial; vector-effect: initial; stop-color: initial; stop-opacity: initial; flood-color: initial; flood-opacity: initial; lighting-color: initial; mask-type: initial; clip-path: initial; mask: initial; x: initial; y: initial; cx: initial; cy: initial; rx: initial; ry: initial; r: initial; d: initial; table-layout: initial; text-overflow: initial; text-decoration: initial; ime-mode: initial; scrollbar-width: initial; user-select: initial; -moz-force-broken-image-icon: initial; transition: initial; animation: initial; animation-composition: initial; view-transition-name: initial; view-transition-class: initial; -moz-box-align: initial; -moz-box-direction: initial; -moz-box-flex: initial; -moz-box-orient: initial; -moz-box-pack: initial; -moz-box-ordinal-group: initial; position: relative; z-index: 2147483647;"><div style="all: initial;" class="eedabfcdfjdbfdcaibeefbahgfajcfbe"></div></div><div class="joyride-tip-guide" data-index="0"><span class="joyride-nub"></span><div class="joyride-content-wrapper" role="dialog"><p>Welcome to <b>ONDA</b>!<br><br>You can use the ENTER key to go to the next
+            slide<br><br>Close this window to skip tutorial.<br></p><a href="#" class="joyride-next-tip">Start tutorial</a><a href="#close" class="joyride-close-tip">X</a></div></div><div class="joyride-tip-guide" data-index="1"><span class="joyride-nub"></span><div class="joyride-content-wrapper" role="dialog"><p>Create a new file<br></p><a href="#" class="joyride-next-tip">Next</a><a href="#close" class="joyride-close-tip">X</a></div></div><div class="joyride-tip-guide" data-index="2"><span class="joyride-nub"></span><div class="joyride-content-wrapper" role="dialog"><p>Open existing diagram<br></p><a href="#" class="joyride-next-tip">Next</a><a href="#close" class="joyride-close-tip">X</a></div></div><div class="joyride-tip-guide" data-index="3"><span class="joyride-nub"></span><div class="joyride-content-wrapper" role="dialog"><p>Save created diagram (.json) <br></p><a href="#" class="joyride-next-tip">Next</a><a href="#close" class="joyride-close-tip">X</a></div></div><div class="joyride-tip-guide" data-index="4"><span class="joyride-nub"></span><div class="joyride-content-wrapper" role="dialog"><p>Export created diagram (.png) <br></p><a href="#" class="joyride-next-tip">Next</a><a href="#close" class="joyride-close-tip">X</a></div></div><div class="joyride-tip-guide" data-index="5"><span class="joyride-nub"></span><div class="joyride-content-wrapper" role="dialog"><p>Undo<br></p><a href="#" class="joyride-next-tip">Next</a><a href="#close" class="joyride-close-tip">X</a></div></div><div class="joyride-tip-guide" data-index="6"><span class="joyride-nub"></span><div class="joyride-content-wrapper" role="dialog"><p>Redo<br></p><a href="#" class="joyride-next-tip">Next</a><a href="#close" class="joyride-close-tip">X</a></div></div><div class="joyride-tip-guide" data-index="7"><span class="joyride-nub"></span><div class="joyride-content-wrapper" role="dialog"><p>Zoom in your diagram<br></p><a href="#" class="joyride-next-tip">Next</a><a href="#close" class="joyride-close-tip">X</a></div></div><div class="joyride-tip-guide" data-index="8"><span class="joyride-nub"></span><div class="joyride-content-wrapper" role="dialog"><p>Zoom out your diagram<br></p><a href="#" class="joyride-next-tip">Next</a><a href="#close" class="joyride-close-tip">X</a></div></div><div class="joyride-tip-guide" data-index="9"><span class="joyride-nub"></span><div class="joyride-content-wrapper" role="dialog"><p>Add a new entity<br></p><a href="#" class="joyride-next-tip">Next</a><a href="#close" class="joyride-close-tip">X</a></div></div><div class="joyride-tip-guide" data-index="10"><span class="joyride-nub"></span><div class="joyride-content-wrapper" role="dialog"><p>Create relations between entities<br></p><a href="#" class="joyride-next-tip">Next</a><a href="#close" class="joyride-close-tip">X</a></div></div><div class="joyride-tip-guide" data-index="11"><span class="joyride-nub"></span><div class="joyride-content-wrapper" role="dialog"><p>Create inheritance relations<br></p><a href="#" class="joyride-next-tip">Next</a><a href="#close" class="joyride-close-tip">X</a></div></div><div class="joyride-tip-guide" data-index="12"><span class="joyride-nub"></span><div class="joyride-content-wrapper" role="dialog"><p>Add a new sequence<br></p><a href="#" class="joyride-next-tip">Next</a><a href="#close" class="joyride-close-tip">X</a></div></div><div class="joyride-tip-guide" data-index="13"><span class="joyride-nub"></span><div class="joyride-content-wrapper" role="dialog"><p>Choose Database<br><br> You can select your database engine to generate the DDL
+            scripts<br></p><a href="#" class="joyride-next-tip">Next</a><a href="#close" class="joyride-close-tip">X</a></div></div><div class="joyride-tip-guide" data-index="14"><span class="joyride-nub"></span><div class="joyride-content-wrapper" role="dialog"><p>Choose Normalization<br><br> You can select between Normal or Simplified
+            normalization!<br></p><a href="#" class="joyride-next-tip">Next</a><a href="#close" class="joyride-close-tip">X</a></div></div><div class="joyride-tip-guide" data-index="15"><span class="joyride-nub"></span><div class="joyride-content-wrapper" role="dialog"><p>Conceptual Model of the Diagram<br></p><a href="#" class="joyride-next-tip">Next</a><a href="#close" class="joyride-close-tip">X</a></div></div><div class="joyride-tip-guide" data-index="16"><span class="joyride-nub"></span><div class="joyride-content-wrapper" role="dialog"><p>Physical Model of the Diagram<br></p><a href="#" class="joyride-next-tip">Next</a><a href="#close" class="joyride-close-tip">X</a></div></div><div class="joyride-tip-guide" data-index="17"><span class="joyride-nub"></span><div class="joyride-content-wrapper" role="dialog"><p>DDL Scripts of the Diagram<br><br> You can
+            use the DDL to generate a database<br></p><a href="#" class="joyride-next-tip">Next</a><a href="#close" class="joyride-close-tip">X</a></div></div><div class="joyride-tip-guide" data-index="18"><span class="joyride-nub"></span><div class="joyride-content-wrapper" role="dialog"><p>SQLEditor<br><br> You can use it to make
+            queries to a local database<br></p><a href="#" class="joyride-next-tip">Next</a><a href="#close" class="joyride-close-tip">X</a></div></div><div class="joyride-tip-guide" data-index="19"><span class="joyride-nub"></span><div class="joyride-content-wrapper" role="dialog"><p>Thanks for using <b>ONDA</b>!<br></p><a href="#" class="joyride-next-tip">Let's do this!</a><a href="#close" class="joyride-close-tip">X</a></div></div></body></html>
