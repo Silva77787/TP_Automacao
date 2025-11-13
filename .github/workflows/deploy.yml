@@ -18,9 +18,12 @@ jobs:
 
       - name: Install dependencies
         run: npm install
+        working-directory: ./frontend
 
       - name: Build/Export frontend
-        run: npm run deploy  # <--- comando que gera a pasta dist/
+        run: npm run deploy
+        working-directory: ./frontend
+
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
