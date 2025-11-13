@@ -1,0 +1,87 @@
+{
+	"id": "f0376524-75e4-4263-80f4-8baf67b78ec0",
+	"name": "LogIn and Register tests",
+	"timestamp": "2025-11-13T14:53:56.601Z",
+	"collection_id": "50048312-edbead4b-acd9-4d41-a8c9-15380e60c029",
+	"folder_id": 0,
+	"environment_id": "0",
+	"totalPass": 10,
+	"delay": 0,
+	"persist": true,
+	"status": "finished",
+	"startedAt": "2025-11-13T14:53:55.514Z",
+	"totalFail": 0,
+	"results": [
+		{
+			"id": "936966e3-f768-4368-8c23-d83a7bd66e9e",
+			"name": "Register user",
+			"url": "http://127.0.0.1:8000/register/?Content-Type=application/json",
+			"time": 3,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {
+				"Status code is 400": true,
+				"Correct response message/explanation": true
+			},
+			"testPassFailCounts": {
+				"Status code is 201": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Correct response message/explanation": {
+					"pass": 5,
+					"fail": 0
+				},
+				"Status code is 400": {
+					"pass": 3,
+					"fail": 0
+				},
+				"Status code is 409": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				267,
+				7,
+				3,
+				14,
+				3
+			],
+			"allTests": [
+				{
+					"Status code is 201": true,
+					"Correct response message/explanation": true
+				},
+				{
+					"Status code is 400": true,
+					"Correct response message/explanation": true
+				},
+				{
+					"Status code is 400": true,
+					"Correct response message/explanation": true
+				},
+				{
+					"Status code is 409": true,
+					"Correct response message/explanation": true
+				},
+				{
+					"Status code is 400": true,
+					"Correct response message/explanation": true
+				}
+			]
+		}
+	],
+	"count": 5,
+	"totalTime": 294,
+	"collection": {
+		"requests": [
+			{
+				"id": "936966e3-f768-4368-8c23-d83a7bd66e9e",
+				"method": "POST"
+			}
+		]
+	}
+}

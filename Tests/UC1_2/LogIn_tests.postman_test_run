@@ -1,0 +1,107 @@
+{
+	"id": "3ea5fcd2-90ae-43d7-a5fe-5109b0d28ddd",
+	"name": "LogIn and Register tests",
+	"timestamp": "2025-11-13T15:06:39.017Z",
+	"collection_id": "50048312-edbead4b-acd9-4d41-a8c9-15380e60c029",
+	"folder_id": 0,
+	"environment_id": "0",
+	"totalPass": 18,
+	"delay": 0,
+	"persist": true,
+	"status": "finished",
+	"startedAt": "2025-11-13T15:06:36.966Z",
+	"totalFail": 0,
+	"results": [
+		{
+			"id": "af858e4a-0f08-49b0-9ce9-e56574222820",
+			"name": "Login",
+			"url": "http://127.0.0.1:8000/login/",
+			"time": 3,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {
+				"Status code is 400": true,
+				"Correct response message/explanation": true
+			},
+			"testPassFailCounts": {
+				"Status code is 200": {
+					"pass": 2,
+					"fail": 0
+				},
+				"Correct response message/explanation": {
+					"pass": 9,
+					"fail": 0
+				},
+				"Status code is 401": {
+					"pass": 4,
+					"fail": 0
+				},
+				"Status code is 400": {
+					"pass": 3,
+					"fail": 0
+				}
+			},
+			"times": [
+				265,
+				212,
+				14,
+				3,
+				3,
+				219,
+				214,
+				13,
+				3
+			],
+			"allTests": [
+				{
+					"Status code is 200": true,
+					"Correct response message/explanation": true
+				},
+				{
+					"Status code is 401": true,
+					"Correct response message/explanation": true
+				},
+				{
+					"Status code is 401": true,
+					"Correct response message/explanation": true
+				},
+				{
+					"Status code is 400": true,
+					"Correct response message/explanation": true
+				},
+				{
+					"Status code is 400": true,
+					"Correct response message/explanation": true
+				},
+				{
+					"Status code is 200": true,
+					"Correct response message/explanation": true
+				},
+				{
+					"Status code is 401": true,
+					"Correct response message/explanation": true
+				},
+				{
+					"Status code is 401": true,
+					"Correct response message/explanation": true
+				},
+				{
+					"Status code is 400": true,
+					"Correct response message/explanation": true
+				}
+			]
+		}
+	],
+	"count": 9,
+	"totalTime": 946,
+	"collection": {
+		"requests": [
+			{
+				"id": "af858e4a-0f08-49b0-9ce9-e56574222820",
+				"method": "POST"
+			}
+		]
+	}
+}

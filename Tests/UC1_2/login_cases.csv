@@ -1,0 +1,10 @@
+identifier ,password ,expect_status
+testuser1 ,pass1 ,200
+testuser1 ,wrongpass ,401
+notregistred ,pass1 ,401
+,testuser1 ,400
+testuser1 ,,400
+test1@example.com,pass1 ,200
+test1@example.com,wrongpass ,401
+notauser@example.com,pass1 ,401
+test1@example.com,,400

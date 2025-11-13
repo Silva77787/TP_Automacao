@@ -1,0 +1,154 @@
+{
+	"info": {
+		"_postman_id": "edbead4b-acd9-4d41-a8c9-15380e60c029",
+		"name": "LogIn and Register tests",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "50048312",
+		"_collection_link": "https://rafaelcarneiro480-2208617.postman.co/workspace/Rafael-Carneiro's-Workspace~3bb03d14-a737-4f1a-8fa7-d359189b94fe/collection/50048312-edbead4b-acd9-4d41-a8c9-15380e60c029?action=share&source=collection_link&creator=50048312"
+	},
+	"item": [
+		{
+			"name": "Register user",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const expectedStatus = parseInt(pm.iterationData.get(\"expect_status\"), 10);\r",
+							"const resp = pm.response.json();\r",
+							"\r",
+							"// Define expected messages for each status code\r",
+							"const expectedMessages = {\r",
+							"    201: \"User registered\",\r",
+							"    400: \"All fields are required\",\r",
+							"    409: \"Username or email already exists\"\r",
+							"};\r",
+							"\r",
+							"// Test: Status code matches expected\r",
+							"pm.test(`Status code is ${expectedStatus}`, function () {\r",
+							"    pm.response.to.have.status(expectedStatus);\r",
+							"});\r",
+							"\r",
+							"// Test: Response message matches expected for each status\r",
+							"pm.test(\"Correct response message/explanation\", function () {\r",
+							"    const expectedMessage = expectedMessages[expectedStatus];\r",
+							"    if (expectedStatus === 201) {\r",
+							"        pm.expect(resp.success).to.eql(expectedMessage);\r",
+							"    } else {\r",
+							"        pm.expect(resp.error).to.include(expectedMessage);\r",
+							"    }\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"username\": \"{{username}}\",\r\n  \"password\": \"{{password}}\",\r\n  \"email\": \"{{email}}\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://127.0.0.1:8000/register/?Content-Type=application/json",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "8000",
+					"path": [
+						"register",
+						""
+					],
+					"query": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Login",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const expectedStatus = parseInt(pm.iterationData.get(\"expect_status\"), 10);\r",
+							"const resp = pm.response.json();\r",
+							"\r",
+							"// Expected messages for each type of response\r",
+							"const expectedMessages = {\r",
+							"    200: \"Login successful\",\r",
+							"    400: \"All fields are required\",\r",
+							"    401: \"Invalid credentials\"\r",
+							"};\r",
+							"\r",
+							"// Test: Status code is as expected\r",
+							"pm.test(`Status code is ${expectedStatus}`, function () {\r",
+							"    pm.response.to.have.status(expectedStatus);\r",
+							"});\r",
+							"\r",
+							"// Test: Message is as expected\r",
+							"pm.test(\"Correct response message/explanation\", function () {\r",
+							"    const expectedMessage = expectedMessages[expectedStatus];\r",
+							"    if (expectedStatus === 200) {\r",
+							"        pm.expect(resp.success).to.eql(expectedMessage);\r",
+							"        pm.expect(resp).to.have.property(\"username\");\r",
+							"    } else {\r",
+							"        pm.expect(resp.error).to.include(expectedMessage);\r",
+							"    }\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"identifier\": \"{{identifier}}\",\r\n  \"password\": \"{{password}}\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://127.0.0.1:8000/login/",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "8000",
+					"path": [
+						"login",
+						""
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

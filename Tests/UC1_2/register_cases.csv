@@ -1,0 +1,6 @@
+username ,password ,email ,expect_status
+testuser1 ,pass1 ,test1@example.com ,201
+,pass2 ,test2@example.com ,400
+testuser3 ,,test3@example.com ,400
+testuser1 ,pass1 ,test1@example.com ,409
+testuser4 ,pass4 ,,400
