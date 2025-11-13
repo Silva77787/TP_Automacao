@@ -8,8 +8,8 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "deploy": "main --nojekyll -d dist",
     "predeploy": "expo export -p web",
+    "deploy": "gh-pages --nojekyll -d dist",
     "lint": "expo lint"
   },
   "dependencies": {
