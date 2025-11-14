@@ -2,10 +2,7 @@ name: Deploy Frontend to GitHub Pages
 
 on:
   push:
-    branches:
-      - main
-    paths:
-      - "frontend/**"
+    branches: [ "main" ]
 
 jobs:
   build-and-deploy:
