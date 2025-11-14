@@ -16,6 +16,11 @@ jobs:
         with:
           node-version: 20
 
+      - name: Configure Git
+        run: |
+          git config --global user.name "Leonardo"
+          git config --global user.email "leonardomi.silva@gmail.com"
+
       - name: Install dependencies
         run: npm install
         working-directory: ./frontend
