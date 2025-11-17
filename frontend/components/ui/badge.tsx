@@ -9,8 +9,8 @@ interface BadgeProps {
 }
 
 export function Badge({ children, variant = 'default', style }: BadgeProps) {
-  const backgroundColor = variant === 'secondary' ? '#ececf0' : '#030213';
-  const textColor = variant === 'secondary' ? '#030213' : '#fff';
+  const backgroundColor = variant === 'secondary' ? '#030213' : '#ececf0' ;
+  const textColor = variant === 'secondary' ? '#fff' : '#030213' ;
 
   return (
     <View style={[styles.badge, { backgroundColor }, style]}>

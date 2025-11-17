@@ -1,22 +1,40 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
-import { Image } from 'expo-image';
-import { Ionicons } from '@expo/vector-icons';
-import { Card } from './ui/card';
-import { Badge } from './ui/badge';
-import { Movie } from '@/types/movie';
+
+import React from "react";
+import {
+  Dimensions,
+  StyleProp,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+  ViewStyle,
+} from "react-native";
+import { Badge } from "./ui/badge";
+import { Card } from "./ui/card";
+import { Movie } from "@/types/movie";
+import { Ionicons } from "@expo/vector-icons";
+import { Image } from "expo-image";
 
 interface MovieCardProps extends Movie {
   onPress: () => void;
+  style?: StyleProp<ViewStyle>;
 }
 
-const { width } = Dimensions.get('window');
-const cardWidth = (width - 48) / 2; // 2 columns with padding
+// const { width } = Dimensions.get("window");
+// const cardWidth = (width - 48) / 2; // 2 columns with padding
 
-export function MovieCard({ title, year, rating, genre, image, onPress }: MovieCardProps) {
+export function MovieCard({
+  title,
+  year,
+  rating,
+  genre,
+  image,
+  onPress,
+  style,
+}: MovieCardProps) {
   return (
     <TouchableOpacity onPress={onPress} activeOpacity={0.8}>
-      <Card style={styles.card}>
+      <Card style={[styles.card, style]}>
         <View style={styles.imageContainer}>
           <Image
             source={{ uri: image }}
@@ -25,7 +43,7 @@ export function MovieCard({ title, year, rating, genre, image, onPress }: MovieC
             transition={200}
           />
           <View style={styles.overlay}>
-            <Badge variant="secondary" style={styles.badge}>
+            <Badge variant="primary" style={styles.badge}>
               {genre}
             </Badge>
           </View>
@@ -49,54 +67,52 @@ export function MovieCard({ title, year, rating, genre, image, onPress }: MovieC
 
 const styles = StyleSheet.create({
   card: {
-    width: cardWidth,
     marginBottom: 16,
   },
   imageContainer: {
-    width: '100%',
+    width: "100%",
     aspectRatio: 2 / 3,
-    position: 'relative',
+    position: "relative",
   },
   image: {
-    width: '100%',
-    height: '100%',
+    width: "100%",
+    height: "100%",
   },
   overlay: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 8,
     left: 8,
     right: 8,
   },
   badge: {
-    alignSelf: 'flex-start',
+    alignSelf: "flex-start",
   },
   content: {
     padding: 12,
   },
   title: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: "600",
     marginBottom: 8,
-    color: '#11181C',
+    color: "#fff",
   },
   footer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   year: {
     fontSize: 12,
-    color: '#687076',
+    color: "#687076",
   },
   rating: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 4,
   },
   ratingText: {
-    fontSize: 12,
-    fontWeight: '500',
-    color: '#11181C',
+    fontSize: 14,
+    fontWeight: "500",
+    color: "#fff",
   },
 });
-

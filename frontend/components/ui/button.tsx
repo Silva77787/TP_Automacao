@@ -69,12 +69,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   default: {
-    backgroundColor: '#030213',
+    backgroundColor: 'white',
   },
   outline: {
     backgroundColor: 'transparent',
     borderWidth: 1,
-    borderColor: '#030213',
+    borderColor: '#fff',
   },
   ghost: {
     backgroundColor: 'transparent',
@@ -112,10 +112,10 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   text_default: {
-    color: '#fff',
+    color: '#030213',
   },
   text_outline: {
-    color: '#030213',
+    color: '#fff',
   },
   text_ghost: {
     color: '#030213',

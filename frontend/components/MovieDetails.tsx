@@ -104,7 +104,7 @@ const { height } = Dimensions.get('window');
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#000',
   },
   scrollView: {
     flex: 1,
@@ -136,7 +136,7 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: 'bold',
     marginBottom: 12,
-    color: '#11181C',
+    color: '#fff',
   },
   meta: {
     flexDirection: 'row',
@@ -150,7 +150,7 @@ const styles = StyleSheet.create({
   },
   metaText: {
     fontSize: 14,
-    color: '#687076',
+    color: '#fff',
   },
   badgeContainer: {
     marginBottom: 24,
@@ -167,7 +167,7 @@ const styles = StyleSheet.create({
   sectionText: {
     fontSize: 14,
     lineHeight: 20,
-    color: '#11181C',
+    color: '#687076',
   },
   actions: {
     flexDirection: 'row',

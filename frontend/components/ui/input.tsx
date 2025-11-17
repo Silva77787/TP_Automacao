@@ -16,8 +16,8 @@ export function Input({ style, ...props }: InputProps) {
       style={[
         styles.input,
         {
-          backgroundColor: '#f6f5f5ff',
-          color: "black",
+          backgroundColor: '#000000ff',
+          color: "white",
           borderColor: borderColor + '40',
         },
         style,
@@ -30,6 +30,7 @@ export function Input({ style, ...props }: InputProps) {
 
 const styles = StyleSheet.create({
   input: {
+    flex: 1,
     height: 40,
     borderWidth: 1,
     borderRadius: 8,

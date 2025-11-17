@@ -1,151 +1,260 @@
-import React, { useState, useEffect } from 'react';
+import { Login } from "@/components/Login";
+import { MovieCard } from "@/components/MovieCard";
+import { MovieDetails } from "@/components/MovieDetails";
+import SideMenu from "@/components/SideMenu";
+import { Button } from "@/components/ui/button";
+import { useColorScheme } from "@/hooks/use-color-scheme";
+import { Movie } from "@/types/movie";
+import { Ionicons } from "@expo/vector-icons";
+import Entypo from "@expo/vector-icons/Entypo";
+import { Image } from "expo-image";
+import { StatusBar } from "expo-status-bar";
+import React, { useEffect, useState } from "react";
 import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  TextInput,
   Dimensions,
-  Platform,
-} from 'react-native';
-import { Image } from 'expo-image';
-import { StatusBar } from 'expo-status-bar';
-import { Ionicons } from '@expo/vector-icons';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { MovieCard } from '@/components/MovieCard';
-import { MovieDetails } from '@/components/MovieDetails';
-import { Login } from '@/components/Login';
-import { Button } from '@/components/ui/button';
-import { Movie } from '@/types/movie';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+  useWindowDimensions,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 // Sample movies data - replace with API call later
 const MOVIES: Movie[] = [
   {
     id: 1,
-    title: 'Neon Shadows',
+    title: "Neon Shadows",
     year: 2024,
     rating: 8.7,
-    genre: 'Sci-Fi',
-    image: 'https://images.unsplash.com/photo-1644772310791-deb96e24ee65?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxzY2ktZmklMjBmdXR1cmlzdGljfGVufDF8fHx8MTc2MTUzMzAzNnww&ixlib=rb-4.1.0&q=80&w=1080',
-    description: 'In a dystopian future where memories can be traded like currency, a detective must navigate the neon-lit streets to solve a conspiracy that threatens the fabric of reality itself.',
-    director: 'Sarah Chen',
+    genre: "Sci-Fi",
+    image:
+      "https://images.unsplash.com/photo-1644772310791-deb96e24ee65?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxzY2ktZmklMjBmdXR1cmlzdGljfGVufDF8fHx8MTc2MTUzMzAzNnww&ixlib=rb-4.1.0&q=80&w=1080",
+    description:
+      "In a dystopian future where memories can be traded like currency, a detective must navigate the neon-lit streets to solve a conspiracy that threatens the fabric of reality itself.",
+    director: "Sarah Chen",
     runtime: 142,
-    cast: ['Alex Rivera', 'Maya Thompson', 'James Park'],
+    cast: ["Alex Rivera", "Maya Thompson", "James Park"],
   },
   {
     id: 2,
-    title: 'Thunder Strike',
+    title: "Thunder Strike",
     year: 2024,
     rating: 7.9,
-    genre: 'Action',
-    image: 'https://images.unsplash.com/photo-1755076347925-fe1e04401c90?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxhY3Rpb24lMjBtb3ZpZSUyMHNjZW5lfGVufDF8fHx8MTc2MTQ4NTE5NHww&ixlib=rb-4.1.0&q=80&w=1080',
-    description: 'An elite special forces operative must race against time to prevent a global catastrophe when a rogue faction threatens to unleash devastating weather-control technology.',
-    director: 'Michael Stone',
+    genre: "Action",
+    image:
+      "https://images.unsplash.com/photo-1755076347925-fe1e04401c90?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxhY3Rpb24lMjBtb3ZpZSUyMHNjZW5lfGVufDF8fHx8MTc2MTQ4NTE5NHww&ixlib=rb-4.1.0&q=80&w=1080",
+    description:
+      "An elite special forces operative must race against time to prevent a global catastrophe when a rogue faction threatens to unleash devastating weather-control technology.",
+    director: "Michael Stone",
     runtime: 128,
-    cast: ['Chris Hammond', 'Elena Rodriguez', 'Marcus Johnson'],
+    cast: ["Chris Hammond", "Elena Rodriguez", "Marcus Johnson"],
   },
   {
     id: 3,
-    title: 'Eternal Summer',
+    title: "Eternal Summer",
     year: 2024,
     rating: 8.2,
-    genre: 'Romance',
-    image: 'https://images.unsplash.com/photo-1609561026486-f5d4a3c4c660?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxyb21hbnRpYyUyMGNvdXBsZSUyMHN1bnNldHxlbnwxfHx8fDE3NjE0NTQ3Mjl8MA&ixlib=rb-4.1.0&q=80&w=1080',
-    description: 'Two strangers meet during a magical summer in the Mediterranean, discovering that love transcends time, distance, and the boundaries they\'ve built around their hearts.',
-    director: 'Isabella Rossi',
+    genre: "Romance",
+    image:
+      "https://images.unsplash.com/photo-1609561026486-f5d4a3c4c660?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxyb21hbnRpYyUyMGNvdXBsZSUyMHN1bnNldHxlbnwxfHx8fDE3NjE0NTQ3Mjl8MA&ixlib=rb-4.1.0&q=80&w=1080",
+    description:
+      "Two strangers meet during a magical summer in the Mediterranean, discovering that love transcends time, distance, and the boundaries they've built around their hearts.",
+    director: "Isabella Rossi",
     runtime: 115,
-    cast: ['Emma Laurent', 'Lucas Martinez', 'Sophie Anderson'],
+    cast: ["Emma Laurent", "Lucas Martinez", "Sophie Anderson"],
   },
   {
     id: 4,
-    title: 'The Last Laugh',
+    title: "The Last Laugh",
     year: 2024,
     rating: 7.5,
-    genre: 'Comedy',
-    image: 'https://images.unsplash.com/photo-1758525862263-af89b090fb56?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjb21lZHklMjBsYXVnaGluZyUyMHBlb3BsZXxlbnwxfHx8fDE3NjE1MjE2NzF8MA&ixlib=rb-4.1.0&q=80&w=1080',
-    description: 'A struggling comedian gets one last chance at stardom when a viral video makes him an overnight sensation, but fame comes with unexpected hilarious challenges.',
-    director: 'Tom Baker',
+    genre: "Comedy",
+    image:
+      "https://images.unsplash.com/photo-1758525862263-af89b090fb56?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjb21lZHklMjBsYXVnaGluZyUyMHBlb3BsZXxlbnwxfHx8fDE3NjE1MjE2NzF8MA&ixlib=rb-4.1.0&q=80&w=1080",
+    description:
+      "A struggling comedian gets one last chance at stardom when a viral video makes him an overnight sensation, but fame comes with unexpected hilarious challenges.",
+    director: "Tom Baker",
     runtime: 105,
-    cast: ['Ryan Cooper', 'Jennifer Lee', 'David Walsh'],
+    cast: ["Ryan Cooper", "Jennifer Lee", "David Walsh"],
   },
   {
     id: 5,
-    title: 'Whispers in the Dark',
+    title: "Whispers in the Dark",
     year: 2024,
     rating: 8.0,
-    genre: 'Horror',
-    image: 'https://images.unsplash.com/photo-1662414712336-12cb34792ad5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxob3Jyb3IlMjBkYXJrJTIwc2Nhcnl8ZW58MXx8fHwxNzYxNTY2NjIzfDA&ixlib=rb-4.1.0&q=80&w=1080',
-    description: 'A family moves into an old Victorian mansion, only to discover that the whispers they hear in the night are warnings from spirits trying to save them from an ancient evil.',
-    director: 'Amanda Cross',
+    genre: "Horror",
+    image:
+      "https://images.unsplash.com/photo-1662414712336-12cb34792ad5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxob3Jyb3IlMjBkYXJrJTIwc2Nhcnl8ZW58MXx8fHwxNzYxNTY2NjIzfDA&ixlib=rb-4.1.0&q=80&w=1080",
+    description:
+      "A family moves into an old Victorian mansion, only to discover that the whispers they hear in the night are warnings from spirits trying to save them from an ancient evil.",
+    director: "Amanda Cross",
     runtime: 118,
-    cast: ['Rachel Morrison', 'Tom Hardy', 'Olivia Blake'],
+    cast: ["Rachel Morrison", "Tom Hardy", "Olivia Blake"],
   },
 ];
 
-const GENRES = ['All', 'Action', 'Adventure', 'Animation', 'Comedy', 'Crime', 'Documentary', 'Drama', 'Family', 'Fantasy', 'History', 'Horror', 'Music', 'Mystery', 'Romance', 'Science Fiction', 'TV Movie', 'Thriller', 'War', 'Western'];
+const GENRES = [
+  "All",
+  "Action",
+  "Adventure",
+  "Animation",
+  "Comedy",
+  "Crime",
+  "Documentary",
+  "Drama",
+  "Family",
+  "Fantasy",
+  "History",
+  "Horror",
+  "Music",
+  "Mystery",
+  "Romance",
+  "Science Fiction",
+  "TV Movie",
+  "Thriller",
+  "War",
+  "Western",
+];
 
 export default function HomeScreen() {
+  const { width } = useWindowDimensions();
+  const isLargeScreen = width >= 768;
+
+  let numColumns = 2;
+  if (width >= 768 && width < 1024) {
+    numColumns = 3;
+  } else if (width >= 1024) {
+    numColumns = 4;
+  }
+
+  const horizontalPadding = 16;
+  const gap = 12;
+
+  const cardWidth =
+    (width - horizontalPadding * 2 - gap * (numColumns - 1)) / numColumns;
+
   const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedGenre, setSelectedGenre] = useState('All');
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedGenre, setSelectedGenre] = useState("All");
   const [showLogin, setShowLogin] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
   const colorScheme = useColorScheme();
-  const isDark = colorScheme === 'dark';
+  const isDark = colorScheme === "dark";
+
+  useEffect(() => {
+    if (isLargeScreen && isMenuOpen) {
+      setIsMenuOpen(false);
+    }
+  }, [isLargeScreen, isMenuOpen]);
 
   const filteredMovies = MOVIES.filter((movie) => {
-    const matchesSearch = movie.title.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesGenre = selectedGenre === 'All' || movie.genre === selectedGenre;
+    const matchesSearch = movie.title
+      .toLowerCase()
+      .includes(searchQuery.toLowerCase());
+    const matchesGenre =
+      selectedGenre === "All" || movie.genre === selectedGenre;
     return matchesSearch && matchesGenre;
   });
 
   return (
-    <SafeAreaView style={[styles.container, isDark && styles.containerDark]} edges={['top']}>
-      <StatusBar style={isDark ? 'light' : 'dark'} />
-      
+    <SafeAreaView
+      style={[styles.container, isDark && styles.containerDark]}
+      edges={["top"]}
+    >
+      <StatusBar style={isDark ? "light" : "dark"} />
+
       {/* Header */}
       <View style={[styles.header, isDark && styles.headerDark]}>
         <View style={styles.headerContent}>
           <View style={styles.logo}>
-            <Ionicons name="film" size={20} color={isDark ? '#fff' : '#030213'} />
-            <Text style={[styles.logoText, isDark && styles.logoTextDark]}>CineHub</Text>
+            <Ionicons
+              name="film"
+              size={20}
+              color={isDark ? "#fff" : "#030213"}
+            />
+            <Text style={[styles.logoText, isDark && styles.logoTextDark]}>
+              CineHub
+            </Text>
           </View>
-          
+
           <View style={styles.headerActions}>
             <TouchableOpacity onPress={() => {}} style={styles.iconButton}>
               <Ionicons
-                name={isDark ? 'sunny' : 'moon'}
+                name={isDark ? "sunny" : "moon"}
                 size={20}
-                color={isDark ? '#fff' : '#030213'}
+                color={isDark ? "#fff" : "#030213"}
               />
             </TouchableOpacity>
-            <Button
-              variant="ghost"
-              size="sm"
-              onPress={() => setShowLogin(true)}
-            >
-              <Text style={styles.loginText}>Login</Text>
-            </Button>
+
+            {isLargeScreen ? (
+              <>
+                <TouchableOpacity style={styles.navItem}>
+                  <Text style={[styles.navText, isDark && styles.navTextDark]}>
+                    Home
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.navItem}>
+                  <Text style={[styles.navText, isDark && styles.navTextDark]}>
+                    Movies
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.navItem}>
+                  <Text style={[styles.navText, isDark && styles.navTextDark]}>
+                    TV Shows
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.navItem}>
+                  <Text style={[styles.navText, isDark && styles.navTextDark]}>
+                    My List
+                  </Text>
+                </TouchableOpacity>
+
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onPress={() => setShowLogin(true)}
+                >
+                  Login
+                </Button>
+              </>
+            ) : (
+              <Button
+                variant="ghost"
+                size="sm"
+                onPress={() => setIsMenuOpen(true)}
+              >
+                <Entypo name="menu" size={24} color="white" />
+              </Button>
+            )}
           </View>
         </View>
       </View>
 
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        style={styles.scrollView}
+        showsVerticalScrollIndicator={false}
+      >
         {/* Hero Section */}
         <View style={styles.hero}>
           <Image
             source={{
-              uri: 'https://images.unsplash.com/photo-1524712245354-2c4e5e7121c0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjaW5lbWElMjBtb3ZpZSUyMHRoZWF0ZXJ8ZW58MXx8fHwxNzYxNTUwNTYxfDA&ixlib=rb-4.1.0&q=80&w=1080',
+              uri: "https://images.unsplash.com/photo-1524712245354-2c4e5e7121c0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjaW5lbWElMjBtb3ZpZSUyMHRoZWF0ZXJ8ZW58MXx8fHwxNzYxNTUwNTYxfDA&ixlib=rb-4.1.0&q=80&w=1080",
             }}
             style={styles.heroImage}
             contentFit="cover"
           />
           <View style={styles.heroOverlay}>
             <View style={styles.heroContent}>
-              <Text style={styles.heroTitle}>Discover Your Next Favorite Movie</Text>
+              <Text style={styles.heroTitle}>
+                Discover Your Next Favorite Movie
+              </Text>
               <Text style={styles.heroSubtitle}>
-                Explore thousands of movies across all genres. From blockbuster hits to hidden gems, find what to watch tonight.
+                Explore thousands of movies across all genres. From blockbuster
+                hits to hidden gems, find what to watch tonight.
               </Text>
               <View style={styles.heroButtons}>
                 <Button size="lg" style={styles.heroButton}>
@@ -167,7 +276,12 @@ export default function HomeScreen() {
         {/* Search and Filters */}
         <View style={[styles.filters, isDark && styles.filtersDark]}>
           <View style={styles.searchContainer}>
-            <Ionicons name="search" size={20} color="#687076" style={styles.searchIcon} />
+            <Ionicons
+              name="search"
+              size={20}
+              color="#687076"
+              style={styles.searchIcon}
+            />
             <TextInput
               style={[styles.searchInput, isDark && styles.searchInputDark]}
               placeholder="Search movies..."
@@ -176,7 +290,7 @@ export default function HomeScreen() {
               onChangeText={setSearchQuery}
             />
           </View>
-          
+
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -191,7 +305,9 @@ export default function HomeScreen() {
                   styles.genreChip,
                   selectedGenre === genre && styles.genreChipActive,
                   isDark && styles.genreChipDark,
-                  selectedGenre === genre && isDark && styles.genreChipActiveDark,
+                  selectedGenre === genre &&
+                    isDark &&
+                    styles.genreChipActiveDark,
                 ]}
               >
                 <Text
@@ -211,18 +327,40 @@ export default function HomeScreen() {
         {/* Movies Grid */}
         <View style={styles.moviesSection}>
           <View style={styles.sectionHeader}>
-            <Text style={[styles.sectionTitle, isDark && styles.sectionTitleDark]}>
-              {selectedGenre === 'All' ? 'All Movies' : `${selectedGenre} Movies`}
+            <Text
+              style={[styles.sectionTitle, isDark && styles.sectionTitleDark]}
+            >
+              {selectedGenre === "All"
+                ? "All Movies"
+                : `${selectedGenre} Movies`}
             </Text>
-            <Text style={[styles.sectionSubtitle, isDark && styles.sectionSubtitleDark]}>
-              {filteredMovies.length} {filteredMovies.length === 1 ? 'movie' : 'movies'} found
+            <Text
+              style={[
+                styles.sectionSubtitle,
+                isDark && styles.sectionSubtitleDark,
+              ]}
+            >
+              {filteredMovies.length}{" "}
+              {filteredMovies.length === 1 ? "movie" : "movies"} found
             </Text>
           </View>
 
           {filteredMovies.length > 0 ? (
             <View style={styles.moviesGrid}>
-              {filteredMovies.map((movie) => (
-                <MovieCard key={movie.id} {...movie} onPress={() => setSelectedMovie(movie)} />
+              {filteredMovies.map((movie, index) => (
+                <View
+                  key={movie.id}
+                  style={{
+                    width: cardWidth,
+                    marginRight: (index + 1) % numColumns === 0 ? 0 : gap,
+                    marginBottom: 16,
+                  }}
+                >
+                  <MovieCard
+                    {...movie}
+                    onPress={() => setSelectedMovie(movie)}
+                  />
+                </View>
               ))}
             </View>
           ) : (
@@ -244,79 +382,98 @@ export default function HomeScreen() {
 
       {/* Login Modal */}
       <Login visible={showLogin} onClose={() => setShowLogin(false)} />
+      {/* Side Menu */}
+      {!isLargeScreen && (
+        <SideMenu
+          visible={isMenuOpen}
+          onClose={() => setIsMenuOpen(false)}
+          setShowLogin={setShowLogin}
+        />
+      )}
     </SafeAreaView>
   );
 }
 
-const { width } = Dimensions.get('window');
+const { width } = Dimensions.get("window");
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
   },
   containerDark: {
-    backgroundColor: '#151718',
+    backgroundColor: "#151718",
   },
   header: {
     borderBottomWidth: 1,
-    borderBottomColor: '#ececf0',
-    backgroundColor: '#fff',
+    borderBottomColor: "#ececf0",
+    backgroundColor: "#fff",
   },
   headerDark: {
-    backgroundColor: '#151718',
-    borderBottomColor: '#2a2a2a',
+    backgroundColor: "#151718",
+    borderBottomColor: "#2a2a2a",
   },
   headerContent: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingHorizontal: 16,
     paddingVertical: 12,
   },
   logo: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 8,
   },
   logoText: {
     fontSize: 18,
-    fontWeight: '600',
-    color: '#030213',
+    fontWeight: "600",
+    color: "#030213",
   },
   logoTextDark: {
-    color: '#fff',
+    color: "#fff",
   },
   headerActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 12,
   },
   iconButton: {
     width: 40,
     height: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  navItem: {
+    paddingHorizontal: 8,
+  },
+  navText: {
+    fontSize: 14,
+    fontWeight: "500",
+    color: "#030213",
+  },
+  navTextDark: {
+    color: "#fff",
   },
   loginText: {
     fontSize: 14,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   scrollView: {
     flex: 1,
   },
   hero: {
     height: 300,
-    position: 'relative',
+    position: "relative",
   },
   heroImage: {
-    width: '100%',
-    height: '100%',
+    width: "100%",
+    height: "100%",
   },
   heroOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
-    justifyContent: 'center',
+    backgroundColor: "rgba(0, 0, 0, 0.6)",
+    justifyContent: "center",
     padding: 16,
   },
   heroContent: {
@@ -324,35 +481,35 @@ const styles = StyleSheet.create({
   },
   heroTitle: {
     fontSize: 28,
-    fontWeight: 'bold',
-    color: '#fff',
+    fontWeight: "bold",
+    color: "#fff",
     marginBottom: 12,
   },
   heroSubtitle: {
     fontSize: 16,
-    color: '#fff',
+    color: "#fff",
     marginBottom: 24,
     lineHeight: 22,
   },
   heroButtons: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 12,
   },
   heroButton: {
     flex: 1,
   },
   filters: {
-    backgroundColor: '#f3f3f5',
+    backgroundColor: "#f3f3f5",
     paddingVertical: 16,
     paddingHorizontal: 16,
   },
   filtersDark: {
-    backgroundColor: '#1a1a1a',
+    backgroundColor: "#1a1a1a",
   },
   searchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#fff',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#fff",
     borderRadius: 8,
     paddingHorizontal: 12,
     marginBottom: 12,
@@ -364,11 +521,11 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     fontSize: 16,
-    color: '#11181C',
+    color: "#11181C",
     padding: 0,
   },
   searchInputDark: {
-    color: '#fff',
+    color: "#fff",
   },
   genreScroll: {
     marginTop: 8,
@@ -380,28 +537,28 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     marginRight: 8,
   },
   genreChipDark: {
-    backgroundColor: '#2a2a2a',
+    backgroundColor: "#2a2a2a",
   },
   genreChipActive: {
-    backgroundColor: '#030213',
+    backgroundColor: "#030213",
   },
   genreChipActiveDark: {
-    backgroundColor: '#030213',
+    backgroundColor: "#030213",
   },
   genreText: {
     fontSize: 14,
-    color: '#11181C',
-    fontWeight: '500',
+    color: "#11181C",
+    fontWeight: "500",
   },
   genreTextDark: {
-    color: '#fff',
+    color: "#fff",
   },
   genreTextActive: {
-    color: '#fff',
+    color: "#fff",
   },
   moviesSection: {
     padding: 16,
@@ -411,34 +568,33 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 24,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 4,
-    color: '#11181C',
+    color: "#11181C",
   },
   sectionTitleDark: {
-    color: '#fff',
+    color: "#fff",
   },
   sectionSubtitle: {
     fontSize: 14,
-    color: '#687076',
+    color: "#687076",
   },
   sectionSubtitleDark: {
-    color: '#9BA1A6',
+    color: "#9BA1A6",
   },
   moviesGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    flexWrap: "wrap",
   },
   emptyState: {
     paddingVertical: 48,
-    alignItems: 'center',
+    alignItems: "center",
   },
   emptyText: {
     fontSize: 16,
-    color: '#687076',
+    color: "#687076",
   },
   emptyTextDark: {
-    color: '#9BA1A6',
+    color: "#9BA1A6",
   },
 });
