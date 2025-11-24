@@ -28,11 +28,9 @@ export function MovieDetails({ movie, visible, onClose }: MovieDetailsProps) {
 
   if (!movie) return null;
 
-  // 📱 Responsividade (agora correta)
   const isLargeScreen = width >= 768;
-  const modalWidth = isLargeScreen ? width * 0.6 : width * 1; // <-- RESPONSIVO
-  const modalHeight = height;                                   // <-- ALTURA COMPLETA
-
+  const modalWidth = isLargeScreen ? width * 0.6 : width * 1; 
+  const modalHeight = height;                                   
   const bg = isDark ? "#000" : "#FFF";
   const titleColor = isDark ? "#FFFFFF" : "#000000";
   const textPrimary = isDark ? "#FFFFFF" : "#000000";
@@ -176,13 +174,12 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "flex-end",
-    backgroundColor: "rgba(0,0,0,0.7)", // zona escura envolvente
+    backgroundColor: "rgba(0,0,0,0.7)", 
   },
   backdrop: {
     ...StyleSheet.absoluteFillObject,
   },
   container: {
-    // ❌ SEM ARREDONDAMENTO
     borderRadius: 0,
   },
   scrollView: {

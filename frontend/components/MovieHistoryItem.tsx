@@ -16,7 +16,6 @@ export default function MovieHistoryItem({
 }: MovieHistoryItemProps) {
   const { isDark } = useTheme();
 
-  // 🎨 Cores baseadas no tema
   const textMain = isDark ? "#f9fafb" : "#111827";
   const textMuted = isDark ? "#9ca3af" : "#6b7280";
   const borderColor = isDark ? "#9BA1A6" + "50" : "#D1D5DB";

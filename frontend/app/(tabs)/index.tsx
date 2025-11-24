@@ -241,6 +241,7 @@ export default function HomeScreen() {
               placeholderTextColor="#687076"
               value={searchQuery}
               onChangeText={setSearchQuery}
+              underlineColorAndroid="transparent"
             />
           </View>
 
