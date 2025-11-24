@@ -1,28 +1,31 @@
-import React from 'react';
-import { TextInput, StyleSheet, ViewStyle, TextInputProps } from 'react-native';
-import { useThemeColor } from '@/hooks/use-theme-color';
+import { useTheme } from "@/context/ThemeContext";
+import React from "react";
+import { StyleSheet, TextInput, TextInputProps, ViewStyle } from "react-native";
 
 interface InputProps extends TextInputProps {
   style?: ViewStyle;
 }
 
 export function Input({ style, ...props }: InputProps) {
-  const backgroundColor = useThemeColor({}, 'background');
-  const textColor = useThemeColor({}, 'text');
-  const borderColor = useThemeColor({}, 'icon');
+  const { isDark } = useTheme();
+
+  const backgroundColor = isDark ? "#0a0a0aff" : "#FFFFFF";
+  const textColor = isDark ? "#f9fafb" : "#111827";
+  const borderColor = isDark ? "#9BA1A6" + "50" : "#D1D5DB";
+  const placeholderColor = isDark ? "#9ca3af" : "#6b7280";
 
   return (
     <TextInput
       style={[
         styles.input,
         {
-          backgroundColor: '#000000ff',
-          color: "white",
-          borderColor: borderColor + '40',
+          backgroundColor,
+          color: textColor,
+          borderColor,
         },
         style,
       ]}
-      placeholderTextColor={borderColor + '80'}
+      placeholderTextColor={placeholderColor}
       {...props}
     />
   );
@@ -31,11 +34,11 @@ export function Input({ style, ...props }: InputProps) {
 const styles = StyleSheet.create({
   input: {
     flex: 1,
-    height: 40,
+    height: 42,
     borderWidth: 1,
-    borderRadius: 8,
+    borderRadius: 10,
     paddingHorizontal: 12,
-    fontSize: 16,
+    paddingVertical: 8,
+    fontSize: 14,
   },
 });
-

@@ -12,6 +12,7 @@ import {
 } from "react-native";
 import { Badge } from "./ui/badge";
 import { Card } from "./ui/card";
+import { useTheme } from "@/context/ThemeContext";
 
 interface MovieCardProps extends Movie {
   onPress: () => void;
@@ -27,9 +28,11 @@ export function MovieCard({
   onPress,
   style,
 }: MovieCardProps) {
+  const { isDark } = useTheme();
+
   return (
     <TouchableOpacity onPress={onPress} activeOpacity={0.8}>
-      <Card style={[styles.card, style]}>
+      <Card style={[styles.card, style, isDark && styles.darkCard]}>
         <View style={styles.imageContainer}>
           <Image
             source={{ uri: image }}
@@ -44,14 +47,14 @@ export function MovieCard({
           </View>
         </View>
         <View style={styles.content}>
-          <Text style={styles.title} numberOfLines={1}>
+          <Text style={[styles.title, isDark && styles.darkText]} numberOfLines={1}>
             {title}
           </Text>
           <View style={styles.footer}>
             <Text style={styles.year}>{year}</Text>
             <View style={styles.rating}>
               <Ionicons name="star" size={14} color="#FFD700" />
-              <Text style={styles.ratingText}>{rating.toFixed(1)}</Text>
+              <Text style={[styles.ratingText, isDark && styles.darkText]}>{rating.toFixed(1)}</Text>
             </View>
           </View>
         </View>
@@ -63,6 +66,10 @@ export function MovieCard({
 const styles = StyleSheet.create({
   card: {
     marginBottom: 16,
+    backgroundColor: "#fff"
+  },
+  darkCard: {
+    backgroundColor: "#111"
   },
   imageContainer: {
     width: "100%",
@@ -89,7 +96,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "600",
     marginBottom: 8,
-    color: "#fff",
+    color: "#000",
   },
   footer: {
     flexDirection: "row",
@@ -108,6 +115,9 @@ const styles = StyleSheet.create({
   ratingText: {
     fontSize: 14,
     fontWeight: "500",
-    color: "#fff",
+    color: "#000",
   },
+  darkText:{
+    color: "#fff"
+  }
 });

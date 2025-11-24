@@ -1,9 +1,12 @@
 import Header from "@/components/Header";
 import { Login } from "@/components/Login";
 import MovieHistoryItem from "@/components/MovieHistoryItem";
+import SideMenu from "@/components/SideMenu";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { API_ENDPOINTS } from "@/constants/api";
 import { useAuth } from "@/context/AuthContext";
-import { useColorScheme } from "@/hooks/use-color-scheme";
+import { useTheme } from "@/context/ThemeContext";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
@@ -15,7 +18,6 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   TouchableOpacity,
   useWindowDimensions,
   View,
@@ -23,13 +25,11 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function Profile() {
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === "dark";
+  const { isDark } = useTheme();
+  const { width } = useWindowDimensions();
+  const isLargeScreen = width >= 768;
 
   const router = useRouter();
-
-  const { width } = useWindowDimensions();
-  const isLargeScreen = width >= 900;
 
   const [username, setUsername] = useState<string | null>(null);
   const [email, setEmail] = useState<string | null>(null);
@@ -40,12 +40,26 @@ export default function Profile() {
   const [editEmail, setEditEmail] = useState("");
   const [editPassword, setEditPassword] = useState("");
 
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [authVisible, setAuthVisible] = useState(false);
   const [modalIsLogin, setModalIsLogin] = useState(true);
   const [saving, setSaving] = useState(false);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const bgScreen = isDark ? "#151718" : "#F3F4F6";
+  const cardBg = isDark ? "#151718" : "#FFFFFF";
+  const cardBorder = isDark ? "#2b2c2eff" : "#E5E7EB";
+  const textMain = isDark ? "#f9fafb" : "#020617";
+  const textMuted = isDark ? "#9ca3af" : "#6b7280";
+  const statLabel = textMuted;
+  const statValue = textMain;
+  const badgeBg = isDark ? "#313131ff" : "#E5E7EB";
+  const badgeBorder = isDark ? "#9BA1A6" + "50" : "#D1D5DB";
+  const inputBg = isDark ? "#313131ff" : "#FFFFFF";
+  const inputBorder = isDark ? "#9BA1A6" + "50" : "#D1D5DB";
+  const notLoggedIcon = isDark ? "#e5e7eb" : "#1f2022ff";
 
   const handleSave = async () => {
     if (!user) return;
@@ -81,11 +95,10 @@ export default function Profile() {
         return;
       }
 
-      // Atualizar estado local depois de sucesso
       if (body.email) {
         setEmail(trimmedEmail);
       }
-      setEditPassword(""); // limpa password do campo
+      setEditPassword("");
       setIsEditing(false);
       Alert.alert("Sucesso", "Dados atualizados com sucesso.");
     } catch (err) {
@@ -114,6 +127,7 @@ export default function Profile() {
         if (res.ok) {
           setEmail(data.email || "");
           setEditEmail(data.email || "");
+          setUsername(data.username || user.username);
         } else {
           console.log("Erro ao carregar utilizador:", data);
         }
@@ -129,43 +143,57 @@ export default function Profile() {
 
   if (!user) {
     return (
-      <SafeAreaView style={styles.safeArea} edges={["top"]}>
+      <SafeAreaView
+        style={[styles.safeArea, { backgroundColor: bgScreen }]}
+        edges={["top"]}
+      >
         <StatusBar style={isDark ? "light" : "dark"} />
-        <Header isDark={isDark} isLargeScreen={false} showFullMenu={false} />
+        <Header
+          isLargeScreen={isLargeScreen}
+          onOpenMenu={() => setIsMenuOpen(true)}
+          onLogin={() => setAuthVisible(true)}
+        />
 
         <View style={styles.notLoggedContainer}>
           <Ionicons
             name="person-circle-outline"
             size={72}
-            color="#e5e7eb"
+            color={notLoggedIcon}
             style={{ marginBottom: 16 }}
           />
-          <Text style={styles.notLoggedTextlg}>Não está autenticado</Text>
-          <Text style={styles.notLoggedTextsm}>
+          <Text style={[styles.notLoggedTextlg, { color: textMain }]}>
+            Não está autenticado
+          </Text>
+          <Text style={[styles.notLoggedTextsm, { color: textMuted }]}>
             Para aceder à página de perfil, por favor inicie sessão ou crie uma
             conta.
           </Text>
 
           <View style={styles.notLoggedButtons}>
-            <TouchableOpacity
-              style={[styles.button, styles.buttonPrimary]}
+            <Button
+              style={{ flex: 1 }}
               onPress={() => {
-                setModalIsLogin(true); // modo LOGIN
+                setModalIsLogin(true);
                 setAuthVisible(true);
               }}
+              loading={loading}
+              disabled={loading}
+              variant="default"
             >
-              <Text style={styles.buttonPrimaryText}>Login</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[styles.button, styles.buttonGhost]}
+              Login
+            </Button>
+            <Button
+              style={{ flex: 1 }}
               onPress={() => {
-                setModalIsLogin(false); // modo REGISTO
+                setModalIsLogin(false);
                 setAuthVisible(true);
               }}
+              loading={loading}
+              disabled={loading}
+              variant="outline"
             >
-              <Text style={styles.buttonGhostText}>Create Account</Text>
-            </TouchableOpacity>
+              Create Account
+            </Button>
           </View>
         </View>
 
@@ -175,31 +203,61 @@ export default function Profile() {
           isLogin={modalIsLogin}
           setIsLogin={setModalIsLogin}
         />
+
+        {!isLargeScreen && (
+          <SideMenu
+            visible={isMenuOpen}
+            onClose={() => setIsMenuOpen(false)}
+            setShowLogin={setAuthVisible}
+            onPressProfile={() => router.push("/(tabs)/profile")}
+            setIsLogin={setModalIsLogin}
+          />
+        )}
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={["top"]}>
+    <SafeAreaView
+      style={[styles.safeArea, { backgroundColor: bgScreen }]}
+      edges={["top"]}
+    >
       <StatusBar style={isDark ? "light" : "dark"} />
-      <Header isDark={isDark} isLargeScreen={false} showFullMenu={false} />
+      <Header
+        isLargeScreen={isLargeScreen}
+        onOpenMenu={() => setIsMenuOpen(true)}
+        onLogin={() => setAuthVisible(true)}
+      />
+
       {loading && (
         <ActivityIndicator
           size="large"
-          color="#e5e7eb"
+          color={textMuted}
           style={{ marginVertical: 16 }}
         />
       )}
 
       {error && (
         <Text
-          style={{ color: "tomato", textAlign: "center", marginVertical: 8 }}
+          style={{
+            color: "tomato",
+            textAlign: "center",
+            marginVertical: 8,
+          }}
         >
           {error}
         </Text>
       )}
+
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        <View style={[styles.profileCard, styles.box]}>
+        {/* Profile card */}
+        <View
+          style={[
+            styles.profileCard,
+            styles.box,
+            { backgroundColor: cardBg, borderColor: cardBorder },
+          ]}
+        >
           <View style={styles.profileRow}>
             <View style={styles.avatarWrapper}>
               <Image
@@ -212,57 +270,88 @@ export default function Profile() {
             </View>
 
             <View style={styles.profileInfo}>
-              <Text style={styles.profileName}>{username ?? "Utilizador"}</Text>
-              <Text style={styles.profileEmail}>
+              <Text style={[styles.profileName, { color: textMain }]}>
+                {username ?? "Utilizador"}
+              </Text>
+              <Text style={[styles.profileEmail, { color: textMuted }]}>
                 {email ?? "email@exemplo.com"}
               </Text>
 
               <View style={styles.badgeRow}>
-                <View style={styles.badge}>
-                  <Ionicons name="heart" size={14} color="#f5f5f5" />
-                  <Text style={styles.badgeText}>3 Favoritos</Text>
+                <View
+                  style={[
+                    styles.badge,
+                    { backgroundColor: badgeBg, borderColor: badgeBorder },
+                  ]}
+                >
+                  <Ionicons name="heart" size={14} color={textMain} />
+                  <Text style={[styles.badgeText, { color: textMain }]}>
+                    3 Favoritos
+                  </Text>
                 </View>
-                <View style={styles.badge}>
-                  <Ionicons name="eye" size={14} color="#f5f5f5" />
-                  <Text style={styles.badgeText}>3 Assistidos</Text>
+                <View
+                  style={[
+                    styles.badge,
+                    { backgroundColor: badgeBg, borderColor: badgeBorder },
+                  ]}
+                >
+                  <Ionicons name="eye" size={14} color={textMain} />
+                  <Text style={[styles.badgeText, { color: textMain }]}>
+                    3 Assistidos
+                  </Text>
                 </View>
-                <View style={styles.badge}>
-                  <Ionicons name="calendar" size={14} color="#f5f5f5" />
-                  <Text style={styles.badgeText}>Membro desde 2024</Text>
+                <View
+                  style={[
+                    styles.badge,
+                    { backgroundColor: badgeBg, borderColor: badgeBorder },
+                  ]}
+                >
+                  <Ionicons name="calendar" size={14} color={textMain} />
+                  <Text style={[styles.badgeText, { color: textMain }]}>
+                    Membro desde 2024
+                  </Text>
                 </View>
               </View>
             </View>
           </View>
         </View>
 
-        {/* Main content: Sobre + Histórico */}
+        {/* Main content: Conta + Histórico */}
         <View
           style={[
             styles.mainRow,
             !isLargeScreen && { flexDirection: "column" },
           ]}
         >
-          {/*Sobre*/}
-          <View style={[styles.card, styles.box]}>
-            <Text style={styles.cardTitle}>Conta</Text>
-            <Text style={styles.cardSubtitle}>Informações da sua conta</Text>
+          {/* Conta */}
+          <View
+            style={[
+              styles.card,
+              styles.box,
+              { backgroundColor: cardBg, borderColor: cardBorder },
+            ]}
+          >
+            <Text style={[styles.cardTitle, { color: textMain }]}>Conta</Text>
+            <Text style={[styles.cardSubtitle, { color: textMuted }]}>
+              Informações da sua conta
+            </Text>
 
             {/* Email */}
             <View style={styles.infoBlock}>
-              <Text style={styles.infoLabel}>Email</Text>
+              <Text style={[styles.infoLabel, { color: textMuted }]}>
+                Email
+              </Text>
 
               {isEditing ? (
-                <TextInput
+                <Input
+                  placeholder="o.seu@email.com"
                   value={editEmail}
                   onChangeText={setEditEmail}
-                  placeholder="o.seu@email.com"
-                  placeholderTextColor="#6b7280"
-                  style={styles.input}
                   autoCapitalize="none"
                   keyboardType="email-address"
                 />
               ) : (
-                <Text style={styles.infoValue}>
+                <Text style={[styles.infoValue, { color: textMain }]}>
                   {email || "Sem email definido"}
                 </Text>
               )}
@@ -272,61 +361,77 @@ export default function Profile() {
             <View style={styles.infoBlock}>
               {isEditing ? (
                 <>
-                  <Text style={styles.infoLabel}>Nova Password</Text>
-                  <TextInput
+                  <Text style={[styles.infoLabel, { color: textMuted }]}>
+                    Nova Password
+                  </Text>
+                  <Input
+                    placeholder="Deixe em branco para não alterar"
                     value={editPassword}
                     onChangeText={setEditPassword}
-                    placeholder="Deixe em branco para não alterar"
-                    placeholderTextColor="#6b7280"
-                    style={styles.input}
                     secureTextEntry
                     autoCapitalize="none"
                   />
                 </>
               ) : (
                 <>
-                  <Text style={styles.infoLabel}>Password</Text>
-                  <Text style={styles.infoValue}>********</Text>
+                  <Text style={[styles.infoLabel, { color: textMuted }]}>
+                    Password
+                  </Text>
+                  <Text style={[styles.infoValue, { color: textMain }]}>
+                    ********
+                  </Text>
                 </>
               )}
             </View>
 
-            {/* Botões */}
+            {/* Botões de edição */}
             {isEditing ? (
               <View style={styles.buttonRow}>
-                <TouchableOpacity
-                  style={[styles.button, styles.buttonPrimary]}
+                <Button
+                  variant="secondary"
                   onPress={handleSave}
                   disabled={saving}
                 >
-                  <Text style={styles.buttonPrimaryText}>
-                    {saving ? "A guardar..." : "Salvar"}
-                  </Text>
-                </TouchableOpacity>
+                  {saving ? "A guardar..." : "Salvar"}
+                </Button>
 
-                <TouchableOpacity
-                  style={[styles.button, styles.buttonGhost]}
+                <Button
+                  variant="secondary"
                   onPress={handleCancel}
                   disabled={saving}
                 >
-                  <Text style={styles.buttonGhostText}>Cancelar</Text>
-                </TouchableOpacity>
+                  Cancelar
+                </Button>
               </View>
             ) : (
-              <TouchableOpacity
+              <Button
                 style={styles.editButton}
+                variant="secondary"
                 onPress={() => setIsEditing(true)}
               >
-                <Ionicons name="pencil" size={16} color="#f9fafb" />
-                <Text style={styles.editButtonText}>Editar conta</Text>
-              </TouchableOpacity>
+                <Ionicons
+                  style={styles.editText}
+                  name="pencil"
+                  size={16}
+                  color={isDark ? "#fff" : "#030213"}
+                />
+                Editar conta
+              </Button>
             )}
           </View>
 
           {/* Histórico Recente */}
-          <View style={[styles.card, styles.box]}>
-            <Text style={styles.cardTitle}>Histórico Recente</Text>
-            <Text style={styles.cardSubtitle}>
+          <View
+            style={[
+              styles.card,
+              styles.box,
+              { backgroundColor: cardBg, borderColor: cardBorder },
+            ]}
+          >
+            <Text style={[styles.cardTitle, { color: textMain }]}>
+              Histórico Recente
+            </Text>
+            <Text style={[styles.cardSubtitle, { color: textMuted }]}>
               Seus últimos filmes assistidos
             </Text>
 
@@ -349,30 +454,58 @@ export default function Profile() {
         </View>
 
         {/* Estatísticas */}
-        <View style={[styles.statsCard, styles.box]}>
-          <Text style={styles.cardTitle}>Estatísticas</Text>
-          <Text style={styles.cardSubtitle}>Sua atividade no CineHub</Text>
+        <View
+          style={[
+            styles.statsCard,
+            styles.box,
+            { backgroundColor: cardBg, borderColor: cardBorder },
+          ]}
+        >
+          <Text style={[styles.cardTitle, { color: textMain }]}>
+            Estatísticas
+          </Text>
+          <Text style={[styles.cardSubtitle, { color: textMuted }]}>
+            Sua atividade no CineHub
+          </Text>
 
           <View style={styles.statsRow}>
             <View style={styles.statsItem}>
-              <Text style={styles.statsValue}>24</Text>
-              <Text style={styles.statsLabel}>Filmes assistidos</Text>
+              <Text style={[styles.statsValue, { color: statValue }]}>24</Text>
+              <Text style={[styles.statsLabel, { color: statLabel }]}>
+                Filmes assistidos
+              </Text>
             </View>
             <View style={styles.statsItem}>
-              <Text style={styles.statsValue}>3</Text>
-              <Text style={styles.statsLabel}>Favoritos</Text>
+              <Text style={[styles.statsValue, { color: statValue }]}>3</Text>
+              <Text style={[styles.statsLabel, { color: statLabel }]}>
+                Favoritos
+              </Text>
             </View>
             <View style={styles.statsItem}>
-              <Text style={styles.statsValue}>4.2</Text>
-              <Text style={styles.statsLabel}>Avaliação média</Text>
+              <Text style={[styles.statsValue, { color: statValue }]}>4.2</Text>
+              <Text style={[styles.statsLabel, { color: statLabel }]}>
+                Avaliação média
+              </Text>
             </View>
             <View style={styles.statsItem}>
-              <Text style={styles.statsValue}>36h</Text>
-              <Text style={styles.statsLabel}>Tempo assistindo</Text>
+              <Text style={[styles.statsValue, { color: statValue }]}>36h</Text>
+              <Text style={[styles.statsLabel, { color: statLabel }]}>
+                Tempo assistindo
+              </Text>
             </View>
           </View>
         </View>
       </ScrollView>
+
+      {!isLargeScreen && (
+        <SideMenu
+          visible={isMenuOpen}
+          onClose={() => setIsMenuOpen(false)}
+          setShowLogin={setAuthVisible}
+          onPressProfile={() => router.push("/(tabs)/profile")}
+          setIsLogin={setModalIsLogin}
+        />
+      )}
     </SafeAreaView>
   );
 }
@@ -380,7 +513,6 @@ export default function Profile() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "#151718", // quase preto
   },
   scrollContent: {
     paddingHorizontal: 12,
@@ -390,7 +522,6 @@ const styles = StyleSheet.create({
   box: {
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: "#9BA1A6" + 50,
     overflow: "hidden",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
@@ -399,7 +530,7 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
 
-  //Not logged
+  // Not logged
   notLoggedContainer: {
     flex: 1,
     justifyContent: "center",
@@ -407,26 +538,28 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
   },
   notLoggedTextlg: {
-    color: "#f9fafb",
     fontSize: 18,
     fontWeight: "600",
     marginBottom: 8,
     textAlign: "center",
   },
   notLoggedTextsm: {
-    color: "#9ca3af",
     fontSize: 14,
     textAlign: "center",
     marginBottom: 24,
   },
-  notLoggedButtons: { flexDirection: "row", gap: 12, width: "60%" },
+  notLoggedButtons: {
+    flexDirection: "row",
+    gap: 12,
+    width: "70%",
+    alignSelf: "center",
+  },
+
   // Profile card
   profileCard: {
-    backgroundColor: "#151718",
     borderRadius: 16,
     padding: 16,
     borderWidth: 1,
-    borderColor: "#111827",
   },
   profileRow: {
     flexDirection: "row",
@@ -456,12 +589,10 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   profileName: {
-    color: "#f9fafb",
     fontSize: 20,
     fontWeight: "700",
   },
   profileEmail: {
-    color: "#9ca3af",
     fontSize: 14,
   },
   badgeRow: {
@@ -477,12 +608,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderWidth: 1,
-    borderColor: "#9BA1A6" + 50,
     borderRadius: 12,
-    backgroundColor: "#313131ff",
   },
   badgeText: {
-    color: "#e5e7eb",
     fontSize: 12,
   },
 
@@ -493,20 +621,16 @@ const styles = StyleSheet.create({
   },
   card: {
     flex: 1,
-    backgroundColor: "#151718",
     borderRadius: 16,
     padding: 16,
     borderWidth: 1,
-    borderColor: "#111827",
   },
   cardTitle: {
-    color: "#f9fafb",
     fontSize: 16,
     fontWeight: "600",
     marginBottom: 4,
   },
   cardSubtitle: {
-    color: "#9ca3af",
     fontSize: 13,
     marginBottom: 16,
   },
@@ -515,28 +639,19 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   infoLabel: {
-    color: "#9ca3af",
     fontSize: 12,
     marginBottom: 4,
   },
   infoValue: {
-    color: "#e5e7eb",
     fontSize: 14,
   },
 
   input: {
-    backgroundColor: "#313131ff",
     borderWidth: 1,
-    borderColor: "#9BA1A6" + 50,
     borderRadius: 12,
-    color: "#f9fafb",
     paddingHorizontal: 12,
     paddingVertical: 10,
     fontSize: 14,
-  },
-  textArea: {
-    minHeight: 80,
-    textAlignVertical: "top",
   },
 
   editButton: {
@@ -544,18 +659,11 @@ const styles = StyleSheet.create({
     alignSelf: "flex-start",
     flexDirection: "row",
     alignItems: "center",
-    gap: 6,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    backgroundColor: "#313131ff",
-    borderWidth: 1,
-    borderColor: "#9BA1A6" + 50,
-    borderRadius: 12,
+    gap: 10,
   },
-  editButtonText: {
-    color: "#f9fafb",
-    fontSize: 13,
-    fontWeight: "500",
+
+  editText: {
+    marginRight: 10,
   },
 
   buttonRow: {
@@ -564,38 +672,12 @@ const styles = StyleSheet.create({
     gap: 8,
     marginTop: 1,
   },
-  button: {
-    flex: 1,
-    paddingVertical: 10,
-    borderRadius: 12,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  buttonPrimary: {
-    backgroundColor: "#f9fafb",
-  },
-  buttonPrimaryText: {
-    color: "#020617",
-    fontSize: 14,
-    fontWeight: "600",
-  },
-  buttonGhost: {
-    backgroundColor: "#313131ff",
-    borderWidth: 1,
-    borderColor: "#9BA1A6" + 50,
-  },
-  buttonGhostText: {
-    color: "#e5e7eb",
-    fontSize: 14,
-    fontWeight: "500",
-  },
+
   // Estatísticas
   statsCard: {
-    backgroundColor: "#151718",
     borderRadius: 16,
     padding: 16,
     borderWidth: 1,
-    borderColor: "#111827",
     marginTop: 4,
   },
   statsRow: {
@@ -610,12 +692,10 @@ const styles = StyleSheet.create({
     minWidth: 80,
   },
   statsValue: {
-    color: "#f9fafb",
     fontSize: 20,
     fontWeight: "700",
   },
   statsLabel: {
-    color: "#9ca3af",
     fontSize: 12,
     marginTop: 2,
   },

@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, ViewStyle } from 'react-native';
-import { useThemeColor } from '@/hooks/use-theme-color';
+import { useTheme } from '@/context/ThemeContext';
 
 interface BadgeProps {
   children: React.ReactNode;
@@ -9,8 +9,16 @@ interface BadgeProps {
 }
 
 export function Badge({ children, variant = 'default', style }: BadgeProps) {
-  const backgroundColor = variant === 'secondary' ? '#030213' : '#ececf0' ;
-  const textColor = variant === 'secondary' ? '#fff' : '#030213' ;
+  const { isDark } = useTheme();
+
+  const bgDefault = isDark ? "#313131ff" : "#E5E7EB";
+  const textDefault = isDark ? "#f9fafb" : "#111827";
+
+  const bgSecondary = isDark ? "#111827" : "#D1D5DB";
+  const textSecondary = isDark ? "#f9fafb" : "#111827";
+
+  const backgroundColor = variant === "secondary" ? bgSecondary : bgDefault;
+  const textColor = variant === "secondary" ? textSecondary : textDefault;
 
   return (
     <View style={[styles.badge, { backgroundColor }, style]}>

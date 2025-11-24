@@ -1,7 +1,8 @@
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
-
 import { MaterialIcons } from "@expo/vector-icons";
+import { useTheme } from "@/context/ThemeContext";
+
 interface MovieHistoryItemProps {
   title: string;
   timeAgo: string;
@@ -13,13 +14,23 @@ export default function MovieHistoryItem({
   timeAgo,
   rating,
 }: MovieHistoryItemProps) {
+  const { isDark } = useTheme();
+
+  // 🎨 Cores baseadas no tema
+  const textMain = isDark ? "#f9fafb" : "#111827";
+  const textMuted = isDark ? "#9ca3af" : "#6b7280";
+  const borderColor = isDark ? "#9BA1A6" + "50" : "#D1D5DB";
+  const starColor = "#facc15"; 
+
   const stars = Array.from({ length: 5 });
 
   return (
-    <View style={styles.historyItem}>
+    <View style={[styles.historyItem, { borderBottomColor: borderColor }]}>
       <View>
-        <Text style={styles.historyTitle}>{title}</Text>
-        <Text style={styles.historyTime}>{timeAgo}</Text>
+        <Text style={[styles.historyTitle, { color: textMain }]}>{title}</Text>
+        <Text style={[styles.historyTime, { color: textMuted }]}>
+          {timeAgo}
+        </Text>
       </View>
 
       <View style={styles.historyRight}>
@@ -29,7 +40,7 @@ export default function MovieHistoryItem({
               key={index}
               name={index < rating ? "star" : "star-border"}
               size={18}
-              color="#facc15"
+              color={starColor}
             />
           ))}
         </View>
@@ -45,15 +56,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: "#9BA1A6" + 50,
   },
   historyTitle: {
-    color: "#f9fafb",
     fontSize: 14,
     fontWeight: "500",
   },
   historyTime: {
-    color: "#9ca3af",
     fontSize: 12,
   },
   historyRight: {

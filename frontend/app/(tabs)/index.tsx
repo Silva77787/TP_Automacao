@@ -4,9 +4,8 @@ import { MovieCard } from "@/components/MovieCard";
 import { MovieDetails } from "@/components/MovieDetails";
 import SideMenu from "@/components/SideMenu";
 import { Button } from "@/components/ui/button";
-
 import { useAuth } from "@/context/AuthContext";
-import { useColorScheme } from "@/hooks/use-color-scheme";
+import { useTheme } from "@/context/ThemeContext";
 import { Movie } from "@/types/movie";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
@@ -122,8 +121,7 @@ const GENRES = [
 ];
 
 export default function HomeScreen() {
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === "dark";
+  const { isDark, toggleTheme } = useTheme();
 
   const { width } = useWindowDimensions();
   const isLargeScreen = width >= 768;
@@ -177,9 +175,7 @@ export default function HomeScreen() {
 
       {/* Header */}
       <Header
-        isDark={isDark}
         isLargeScreen={isLargeScreen}
-        showFullMenu={true}
         onOpenMenu={() => setIsMenuOpen(true)}
         onLogin={() => setShowLogin(true)}
       />
@@ -207,14 +203,14 @@ export default function HomeScreen() {
                 hits to hidden gems, find what to watch tonight.
               </Text>
               <View style={styles.heroButtons}>
-                <Button size="lg" style={styles.heroButton}>
+                <Button size="lg" variant="defaultIndex" style={styles.heroButton}>
                   Browse Movies
                 </Button>
                 {isLogged ? (
                   <></>
                 ) : (
                   <Button
-                    variant="outline"
+                    variant="outlineIndex"
                     size="lg"
                     style={styles.heroButton}
                     onPress={() => {
@@ -232,7 +228,7 @@ export default function HomeScreen() {
 
         {/* Search and Filters */}
         <View style={[styles.filters, isDark && styles.filtersDark]}>
-          <View style={styles.searchContainer}>
+          <View style={[styles.searchContainer, isDark && styles.searchContainerDark]}>
             <Ionicons
               name="search"
               size={20}
@@ -336,7 +332,6 @@ export default function HomeScreen() {
         visible={!!selectedMovie}
         onClose={() => setSelectedMovie(null)}
       />
-
       {/* Login Modal */}
       <Login
         visible={showLogin}
@@ -427,6 +422,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     marginBottom: 12,
     height: 44,
+  },
+  searchContainerDark: {
+    backgroundColor: "#2a2a2a",
   },
   searchIcon: {
     marginRight: 8,

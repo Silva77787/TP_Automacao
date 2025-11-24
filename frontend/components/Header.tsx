@@ -1,33 +1,27 @@
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
+import { useTheme } from "@/context/ThemeContext";
 import { Entypo, Ionicons } from "@expo/vector-icons";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { useRouter } from "expo-router";
 import React from "react";
-import { StyleSheet, Text, TouchableOpacity, View, Alert} from "react-native";
+import { Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 interface Props {
-  isDark?: boolean;
   isLargeScreen?: boolean;
-  showFullMenu?: boolean;
   onOpenMenu?: () => void;
   onLogin?: () => void;
 }
 
-export default function Header({
-  isDark,
-  isLargeScreen,
-  showFullMenu = true,
-  onOpenMenu,
-  onLogin
-}: Props) {
+export default function Header({ isLargeScreen, onOpenMenu, onLogin }: Props) {
+  const { isDark, toggleTheme } = useTheme();
 
   const router = useRouter();
   const { user, logout } = useAuth();
   const isLogged = !!user;
 
   const handleLogout = () => {
-    logout(); 
+    logout();
     Alert.alert("Success", "You have been signed out.");
   };
 
@@ -42,69 +36,68 @@ export default function Header({
         </View>
 
         <View style={styles.headerActions}>
-          {showFullMenu ? (
-            isLargeScreen ? (
-              <>
-                <TouchableOpacity style={styles.navItem}>
-                  <Text style={[styles.navText, isDark && styles.navTextDark]}>
-                    Home
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.navItem}>
-                  <Text style={[styles.navText, isDark && styles.navTextDark]}>
-                    Movies
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.navItem}>
-                  <Text style={[styles.navText, isDark && styles.navTextDark]}>
-                    TV Shows
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.navItem}>
-                  <Text style={[styles.navText, isDark && styles.navTextDark]}>
-                    My List
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity onPress={() => {}} style={styles.iconButton}>
-                  <Ionicons
-                    name={isDark ? "sunny" : "moon"}
-                    size={20}
-                    color={isDark ? "#fff" : "#030213"}
-                  />
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.navItem}
-                  onPress={() => router.push("/(tabs)/profile")}
-                >
-                  <MaterialIcons name="person-outline" size={20} color="#fff" />
-                </TouchableOpacity>
+          {isLargeScreen ? (
+            <>
+              <TouchableOpacity style={styles.navItem} onPress={() => router.push("/")}>
+                <Text style={[styles.navText, isDark && styles.navTextDark]}>
+                  Home
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.navItem}>
+                <Text style={[styles.navText, isDark && styles.navTextDark]}>
+                  Search
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.navItem}>
+                <Text style={[styles.navText, isDark && styles.navTextDark]}>
+                  My List
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={toggleTheme} style={styles.iconButton}>
+                <Ionicons
+                  name={isDark ? "sunny" : "moon"}
+                  size={20}
+                  color={isDark ? "#fff" : "#030213"}
+                />
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.navItem}
+                onPress={() => router.push("/(tabs)/profile")}
+              >
+                <MaterialIcons
+                  name="person-outline"
+                  size={20}
+                  color={isDark ? "#fff" : "#030213"}
+                />
+              </TouchableOpacity>
 
-                {isLogged ? (
-                  <Button variant="secondary" size="sm" onPress={handleLogout}>
-                    Sign out
-                  </Button>
-                ) : (
-                  <Button variant="secondary" size="sm" onPress={onLogin}>
-                    Login
-                  </Button>
-                )}
-              </>
-            ) : (
-              <Button variant="ghost" size="sm" onPress={onOpenMenu}>
-                <Entypo name="menu" size={24} color="white" />
-              </Button>
-            )
+              {isLogged ? (
+                <Button variant="default" size="sm" onPress={handleLogout}>
+                  Sign out
+                </Button>
+              ) : (
+                <Button variant="default" size="sm" onPress={onLogin}>
+                  Login
+                </Button>
+              )}
+            </>
           ) : (
-            <TouchableOpacity
-              style={styles.iconButton}
-              onPress={() => router.back()}
-            >
-              <Ionicons
-                name="arrow-back"
-                size={22}
-                color={isDark ? "#fff" : "#030213"}
-              />
-            </TouchableOpacity>
+            <>
+              <TouchableOpacity onPress={toggleTheme} style={styles.iconButton}>
+                <Ionicons
+                  name={isDark ? "sunny" : "moon"}
+                  size={20}
+                  color={isDark ? "#fff" : "#030213"}
+                />
+              </TouchableOpacity>
+              <Button variant="ghost" size="sm" onPress={onOpenMenu}>
+                <Entypo
+                  name="menu"
+                  size={24}
+                  color={isDark ? "#fff" : "#030213"}
+                />
+              </Button>
+            </>
           )}
         </View>
       </View>

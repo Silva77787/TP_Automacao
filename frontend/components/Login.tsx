@@ -1,5 +1,6 @@
 import { API_ENDPOINTS } from "@/constants/api";
 import { useAuth } from "@/context/AuthContext";
+import { useTheme } from "@/context/ThemeContext";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
 import {
@@ -23,13 +24,10 @@ interface LoginProps {
   setIsLogin: (is: boolean) => void;
 }
 
-export function Login({
-  visible,
-  onClose,
-  isLogin,
-  setIsLogin,
-}: LoginProps) {
+export function Login({ visible, onClose, isLogin, setIsLogin }: LoginProps) {
   const { setUser } = useAuth();
+  const { isDark } = useTheme();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
@@ -39,6 +37,12 @@ export function Login({
   const isLargeScreen = width >= 768;
   const containerWidth = isLargeScreen ? "50%" : "85%";
   const containerHeight = isLargeScreen ? "80%" : "80%";
+
+  const modalBg = isDark ? "#000000" : "#FFFFFF";
+  const borderColor = isDark ? "#ececf0" : "#000000";
+  const textPrimary = isDark ? "#FFFFFF" : "#000000";
+  const textSecondary = isDark ? "#9BA1A6" : "#687076";
+  const dividerColor = isDark ? "#2A2A2F" : "#ececf0";
 
   const handleSubmit = async () => {
     if (isLogin) {
@@ -100,34 +104,33 @@ export function Login({
     }
   };
 
+  const handleClose = () => {
+    onClose();
+    setEmail("");
+    setPassword("");
+    setName("");
+  };
+
   return (
     <Modal
       visible={visible}
       animationType="fade"
       transparent
-      onRequestClose={() => {
-        onClose();
-        setEmail("");
-        setPassword("");
-        setName("");
-      }}
+      onRequestClose={handleClose}
     >
       <View style={styles.overlay}>
         {/* BACKDROP que fecha ao clicar fora */}
-        <Pressable
-          style={styles.backdrop}
-          onPress={() => {
-            onClose();
-            setEmail("");
-            setPassword("");
-            setName("");
-          }}
-        />
+        <Pressable style={styles.backdrop} onPress={handleClose} />
 
         <View
           style={[
             styles.container,
-            { width: containerWidth, height: containerHeight },
+            {
+              width: containerWidth,
+              height: containerHeight,
+              backgroundColor: modalBg,
+              borderColor,
+            },
           ]}
         >
           <ScrollView
@@ -135,29 +138,23 @@ export function Login({
             showsVerticalScrollIndicator={false}
           >
             <View style={styles.header}>
-              <TouchableOpacity
-                onPress={() => {
-                  onClose();
-                  setEmail("");
-                  setPassword("");
-                  setName("");
-                }}
-                style={styles.closeButton}
-              >
-                <Ionicons name="close" size={18} color="white" />
+              <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
+                <Ionicons name="close" size={18} color={textPrimary} />
               </TouchableOpacity>
             </View>
 
             <View style={styles.content}>
               <View style={styles.logoContainer}>
-                <Ionicons name="film" size={22} color="white" />
-                <Text style={styles.logoText}>CineHub</Text>
+                <Ionicons name="film" size={22} color={textPrimary} />
+                <Text style={[styles.logoText, { color: textPrimary }]}>
+                  CineHub
+                </Text>
               </View>
 
-              <Text style={styles.title}>
+              <Text style={[styles.title, { color: textPrimary }]}>
                 {isLogin ? "Bem-vindo de volta" : "Criar conta"}
               </Text>
-              <Text style={styles.subtitle}>
+              <Text style={[styles.subtitle, { color: textSecondary }]}>
                 {isLogin
                   ? "Entre com suas credenciais para continuar"
                   : "Preencha os dados para criar sua conta"}
@@ -165,7 +162,9 @@ export function Login({
 
               {!isLogin && (
                 <View style={styles.inputContainer}>
-                  <Text style={styles.label}>Nome completo</Text>
+                  <Text style={[styles.label, { color: textPrimary }]}>
+                    Nome completo
+                  </Text>
                   <Input
                     placeholder="Seu nome"
                     value={name}
@@ -176,7 +175,9 @@ export function Login({
               )}
 
               <View style={styles.inputContainer}>
-                <Text style={styles.label}>Email</Text>
+                <Text style={[styles.label, { color: textPrimary }]}>
+                  Email
+                </Text>
                 <Input
                   placeholder="seu@email.com"
                   value={email}
@@ -188,7 +189,9 @@ export function Login({
               </View>
 
               <View style={styles.inputContainer}>
-                <Text style={styles.label}>Senha</Text>
+                <Text style={[styles.label, { color: textPrimary }]}>
+                  Senha
+                </Text>
                 <Input
                   placeholder="••••••••"
                   value={password}
@@ -198,17 +201,25 @@ export function Login({
                 />
               </View>
 
-              {isLogin && (
+              {/* {isLogin && (
                 <View style={styles.options}>
                   <View style={styles.checkboxContainer}>
-                    <Ionicons name="square-outline" size={20} color="#687076" />
-                    <Text style={styles.checkboxText}>Lembrar de mim</Text>
+                    <Ionicons
+                      name="square-outline"
+                      size={20}
+                      color={textSecondary}
+                    />
+                    <Text style={[styles.checkboxText, { color: textSecondary }]}>
+                      Lembrar de mim
+                    </Text>
                   </View>
                   <TouchableOpacity>
-                    <Text style={styles.linkText}>Esqueceu a senha?</Text>
+                    <Text style={[styles.linkText, { color: textPrimary }]}>
+                      Esqueceu a senha?
+                    </Text>
                   </TouchableOpacity>
                 </View>
-              )}
+              )} */}
 
               <Button
                 onPress={handleSubmit}
@@ -216,23 +227,13 @@ export function Login({
                 style={styles.submitButton}
                 loading={loading}
                 disabled={loading}
-                variant="secondary"
+                variant="default"
               >
                 {isLogin ? "Entrar" : "Criar conta"}
               </Button>
 
-              <View style={styles.divider}>
-                <View style={styles.dividerLine} />
-                <Text style={styles.dividerText}>ou</Text>
-                <View style={styles.dividerLine} />
-              </View>
-
-              <Button variant="outline" size="sm" style={styles.googleButton}>
-                Continuar com Google
-              </Button>
-
               <View style={styles.switchContainer}>
-                <Text style={styles.switchText}>
+                <Text style={[styles.switchText, { color: textSecondary }]}>
                   {isLogin ? "Não tem uma conta? " : "Já tem uma conta? "}
                 </Text>
                 <TouchableOpacity
@@ -243,17 +244,11 @@ export function Login({
                     setName("");
                   }}
                 >
-                  <Text style={styles.switchLink}>
+                  <Text style={[styles.switchLink, { color: textPrimary }]}>
                     {isLogin ? "Criar conta" : "Entrar"}
                   </Text>
                 </TouchableOpacity>
               </View>
-
-              <Text style={styles.terms}>
-                Ao criar uma conta, você concorda com nossos{" "}
-                <Text style={styles.termsLink}>Termos de Serviço</Text> e{" "}
-                <Text style={styles.termsLink}>Política de Privacidade</Text>
-              </Text>
             </View>
           </ScrollView>
         </View>
@@ -273,12 +268,10 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0,0,0,0.7)",
   },
   container: {
-    backgroundColor: "#000",
     height: "80%",
     width: "85%",
     borderRadius: 16,
     borderWidth: 0.5,
-    borderColor: "#ececf0",
   },
   scrollView: {
     flex: 1,
@@ -307,18 +300,15 @@ const styles = StyleSheet.create({
   logoText: {
     fontSize: 20,
     fontWeight: "bold",
-    color: "#fff",
   },
   title: {
     fontSize: 18,
     fontWeight: "bold",
     marginBottom: 8,
     textAlign: "center",
-    color: "#fff",
   },
   subtitle: {
     fontSize: 12,
-    color: "#687076",
     textAlign: "center",
     marginBottom: 24,
   },
@@ -329,7 +319,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "500",
     marginBottom: 6,
-    color: "#fff",
   },
   options: {
     flexDirection: "row",
@@ -344,11 +333,9 @@ const styles = StyleSheet.create({
   },
   checkboxText: {
     fontSize: 12,
-    color: "#687076",
   },
   linkText: {
     fontSize: 12,
-    color: "#fff",
     fontWeight: "500",
   },
   submitButton: {
@@ -362,12 +349,10 @@ const styles = StyleSheet.create({
   dividerLine: {
     flex: 1,
     height: 1,
-    backgroundColor: "#ececf0",
   },
   dividerText: {
     marginHorizontal: 14,
     fontSize: 12,
-    color: "#687076",
     textTransform: "uppercase",
   },
   googleButton: {
@@ -380,21 +365,17 @@ const styles = StyleSheet.create({
   },
   switchText: {
     fontSize: 14,
-    color: "#687076",
   },
   switchLink: {
     fontSize: 14,
-    color: "#fff",
     fontWeight: "500",
   },
   terms: {
     fontSize: 12,
-    color: "#687076",
     textAlign: "center",
     lineHeight: 18,
   },
   termsLink: {
-    color: "#fff",
     fontWeight: "500",
   },
 });

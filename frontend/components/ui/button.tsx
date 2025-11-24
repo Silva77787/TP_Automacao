@@ -1,12 +1,26 @@
-import React from 'react';
-import { TouchableOpacity, Text, StyleSheet, ActivityIndicator, ViewStyle, TextStyle } from 'react-native';
-import { useThemeColor } from '@/hooks/use-theme-color';
+import { useTheme } from "@/context/ThemeContext";
+import React from "react";
+import {
+  ActivityIndicator,
+  StyleSheet,
+  Text,
+  TextStyle,
+  TouchableOpacity,
+  ViewStyle,
+} from "react-native";
 
 interface ButtonProps {
   children: React.ReactNode;
   onPress?: () => void;
-  variant?: 'default' | 'outline' | 'ghost' | 'secondary' | 'destructive';
-  size?: 'default' | 'sm' | 'lg' | 'icon';
+  variant?:
+    | "default"
+    | "outline"
+    | "ghost"
+    | "secondary"
+    | "destructive"
+    | "defaultIndex"
+    | "outlineIndex";
+  size?: "default" | "sm" | "lg" | "icon";
   disabled?: boolean;
   loading?: boolean;
   style?: ViewStyle;
@@ -16,29 +30,87 @@ interface ButtonProps {
 export function Button({
   children,
   onPress,
-  variant = 'default',
-  size = 'default',
+  variant = "default",
+  size = "default",
   disabled = false,
   loading = false,
   style,
   textStyle,
 }: ButtonProps) {
-  const backgroundColor = useThemeColor({}, 'background');
-  const textColor = useThemeColor({}, 'text');
-  const tintColor = useThemeColor({}, 'tint');
+  const { isDark } = useTheme();
+
+  const primaryBg = isDark ? "#FFFFFF" : "#000000";
+  const primaryText = isDark ? "#000000" : "#FFFFFF";
+
+  const secondaryBg = isDark ? "#313131ff" : "#E5E7EB";
+  const secondaryText = isDark ? "#f9fafb" : "#111827";
+
+  const destructiveBg = "#d4183d";
+  const destructiveText = "#ffffff";
+
+  const ghostText = primaryText;
+  const outlineText = isDark ? "#FFFFFF" : "#000000";
+  const outlineBorder = isDark ? "#FFFFFF" : "#000000";
+
+  let backgroundColor: string | "transparent" = primaryBg;
+  let textColor: string = primaryText;
+  let borderColor: string | undefined;
+
+  switch (variant) {
+    case "default":
+      backgroundColor = primaryBg;
+      textColor = primaryText;
+      break;
+
+    case "outline":
+      backgroundColor = "transparent";
+      borderColor = outlineBorder;
+      textColor = outlineText;
+      break;
+
+    case "defaultIndex":
+      backgroundColor = "#FFFFFF";
+      textColor = "#000000";
+      break;
+
+    case "outlineIndex":
+      backgroundColor = "transparent";
+      borderColor = "#FFFFFF";
+      textColor = "#FFFFFF";
+      break;
+
+    case "ghost":
+      backgroundColor = "transparent";
+      textColor = ghostText;
+      break;
+
+    case "secondary":
+      backgroundColor = secondaryBg;
+      textColor = secondaryText;
+      break;
+
+    case "destructive":
+      backgroundColor = destructiveBg;
+      textColor = destructiveText;
+      break;
+  }
 
   const buttonStyles = [
     styles.base,
-    styles[variant],
     styles[`size_${size}`],
+    {
+      backgroundColor,
+      borderColor,
+      borderWidth: borderColor ? 1 : 0,
+    },
     disabled && styles.disabled,
     style,
   ];
 
   const textStyles = [
     styles.text,
-    styles[`text_${variant}`],
     styles[`textSize_${size}`],
+    { color: textColor },
     textStyle,
   ];
 
@@ -50,10 +122,7 @@ export function Button({
       activeOpacity={0.7}
     >
       {loading ? (
-        <ActivityIndicator
-          color={variant === 'outline' || variant === 'ghost' ? tintColor : '#fff'}
-          size="small"
-        />
+        <ActivityIndicator color={textColor} size="small" />
       ) : (
         <Text style={textStyles}>{children}</Text>
       )}
@@ -64,26 +133,9 @@ export function Button({
 const styles = StyleSheet.create({
   base: {
     borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexDirection: 'row',
-  },
-  default: {
-    backgroundColor: 'white',
-  },
-  outline: {
-    backgroundColor: 'transparent',
-    borderWidth: 1,
-    borderColor: '#fff',
-  },
-  ghost: {
-    backgroundColor: 'transparent',
-  },
-  secondary: {
-    backgroundColor: '#ececf0',
-  },
-  destructive: {
-    backgroundColor: '#d4183d',
+    alignItems: "center",
+    justifyContent: "center",
+    flexDirection: "row",
   },
   size_default: {
     paddingVertical: 10,
@@ -109,22 +161,7 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   text: {
-    fontWeight: '500',
-  },
-  text_default: {
-    color: '#030213',
-  },
-  text_outline: {
-    color: '#fff',
-  },
-  text_ghost: {
-    color: '#030213',
-  },
-  text_secondary: {
-    color: '#030213',
-  },
-  text_destructive: {
-    color: '#fff',
+    fontWeight: "500",
   },
   textSize_default: {
     fontSize: 14,
@@ -139,4 +176,3 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
 });
-
