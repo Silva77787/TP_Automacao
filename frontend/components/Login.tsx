@@ -42,7 +42,6 @@ export function Login({ visible, onClose, isLogin, setIsLogin }: LoginProps) {
   const borderColor = isDark ? "#ececf0" : "#000000";
   const textPrimary = isDark ? "#FFFFFF" : "#000000";
   const textSecondary = isDark ? "#9BA1A6" : "#687076";
-  const dividerColor = isDark ? "#2A2A2F" : "#ececf0";
 
   const handleSubmit = async () => {
     if (isLogin) {

@@ -177,7 +177,10 @@ export default function HomeScreen() {
       <Header
         isLargeScreen={isLargeScreen}
         onOpenMenu={() => setIsMenuOpen(true)}
-        onLogin={() => setShowLogin(true)}
+        onLogin={() => {
+          setIsLogin(true);
+          setShowLogin(true);
+        }}
       />
 
       <ScrollView
@@ -203,7 +206,11 @@ export default function HomeScreen() {
                 hits to hidden gems, find what to watch tonight.
               </Text>
               <View style={styles.heroButtons}>
-                <Button size="lg" variant="defaultIndex" style={styles.heroButton}>
+                <Button
+                  size="lg"
+                  variant="defaultIndex"
+                  style={styles.heroButton}
+                >
                   Browse Movies
                 </Button>
                 {isLogged ? (
@@ -228,7 +235,12 @@ export default function HomeScreen() {
 
         {/* Search and Filters */}
         <View style={[styles.filters, isDark && styles.filtersDark]}>
-          <View style={[styles.searchContainer, isDark && styles.searchContainerDark]}>
+          <View
+            style={[
+              styles.searchContainer,
+              isDark && styles.searchContainerDark,
+            ]}
+          >
             <Ionicons
               name="search"
               size={20}
