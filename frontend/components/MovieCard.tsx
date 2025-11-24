@@ -1,7 +1,8 @@
-
+import { Movie } from "@/types/movie";
+import { Ionicons } from "@expo/vector-icons";
+import { Image } from "expo-image";
 import React from "react";
 import {
-  Dimensions,
   StyleProp,
   StyleSheet,
   Text,
@@ -11,9 +12,6 @@ import {
 } from "react-native";
 import { Badge } from "./ui/badge";
 import { Card } from "./ui/card";
-import { Movie } from "@/types/movie";
-import { Ionicons } from "@expo/vector-icons";
-import { Image } from "expo-image";
 
 interface MovieCardProps extends Movie {
   onPress: () => void;

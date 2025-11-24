@@ -1,13 +1,15 @@
+import Header from "@/components/Header";
 import { Login } from "@/components/Login";
 import { MovieCard } from "@/components/MovieCard";
 import { MovieDetails } from "@/components/MovieDetails";
 import SideMenu from "@/components/SideMenu";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/context/AuthContext";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { Movie } from "@/types/movie";
 import { Ionicons } from "@expo/vector-icons";
-import Entypo from "@expo/vector-icons/Entypo";
 import { Image } from "expo-image";
+import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import React, { useEffect, useState } from "react";
 import {
@@ -141,6 +143,10 @@ export default function HomeScreen() {
   const [selectedGenre, setSelectedGenre] = useState("All");
   const [showLogin, setShowLogin] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isLogged, setIsLogged] = useState(false);
+  const [isLogin, setIsLogin] = useState(true);
+
+  const { user } = useAuth();
 
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
@@ -151,6 +157,10 @@ export default function HomeScreen() {
     }
   }, [isLargeScreen, isMenuOpen]);
 
+  useEffect(() => {
+    setIsLogged(!!user);
+  }, [user]);
+
   const filteredMovies = MOVIES.filter((movie) => {
     const matchesSearch = movie.title
       .toLowerCase()
@@ -160,6 +170,8 @@ export default function HomeScreen() {
     return matchesSearch && matchesGenre;
   });
 
+  const router = useRouter();
+
   return (
     <SafeAreaView
       style={[styles.container, isDark && styles.containerDark]}
@@ -168,71 +180,15 @@ export default function HomeScreen() {
       <StatusBar style={isDark ? "light" : "dark"} />
 
       {/* Header */}
-      <View style={[styles.header, isDark && styles.headerDark]}>
-        <View style={styles.headerContent}>
-          <View style={styles.logo}>
-            <Ionicons
-              name="film"
-              size={20}
-              color={isDark ? "#fff" : "#030213"}
-            />
-            <Text style={[styles.logoText, isDark && styles.logoTextDark]}>
-              CineHub
-            </Text>
-          </View>
-
-          <View style={styles.headerActions}>
-            <TouchableOpacity onPress={() => {}} style={styles.iconButton}>
-              <Ionicons
-                name={isDark ? "sunny" : "moon"}
-                size={20}
-                color={isDark ? "#fff" : "#030213"}
-              />
-            </TouchableOpacity>
-
-            {isLargeScreen ? (
-              <>
-                <TouchableOpacity style={styles.navItem}>
-                  <Text style={[styles.navText, isDark && styles.navTextDark]}>
-                    Home
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.navItem}>
-                  <Text style={[styles.navText, isDark && styles.navTextDark]}>
-                    Movies
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.navItem}>
-                  <Text style={[styles.navText, isDark && styles.navTextDark]}>
-                    TV Shows
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.navItem}>
-                  <Text style={[styles.navText, isDark && styles.navTextDark]}>
-                    My List
-                  </Text>
-                </TouchableOpacity>
-
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onPress={() => setShowLogin(true)}
-                >
-                  Login
-                </Button>
-              </>
-            ) : (
-              <Button
-                variant="ghost"
-                size="sm"
-                onPress={() => setIsMenuOpen(true)}
-              >
-                <Entypo name="menu" size={24} color="white" />
-              </Button>
-            )}
-          </View>
-        </View>
-      </View>
+      <Header
+        isDark={isDark}
+        isLargeScreen={isLargeScreen}
+        showFullMenu={true}
+        onOpenMenu={() => setIsMenuOpen(true)}
+        onLogin={() => setShowLogin(true)}
+        isLogged={isLogged}
+        setIsLogged={setIsLogged}
+      />
 
       <ScrollView
         style={styles.scrollView}
@@ -260,14 +216,21 @@ export default function HomeScreen() {
                 <Button size="lg" style={styles.heroButton}>
                   Browse Movies
                 </Button>
-                <Button
-                  variant="outline"
-                  size="lg"
-                  style={styles.heroButton}
-                  onPress={() => setShowLogin(true)}
-                >
-                  Create Account
-                </Button>
+                {isLogged ? (
+                  <></>
+                ) : (
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    style={styles.heroButton}
+                    onPress={() => {
+                      setIsLogin(false);
+                      setShowLogin(true);
+                    }}
+                  >
+                    Create Account
+                  </Button>
+                )}
               </View>
             </View>
           </View>
@@ -381,13 +344,21 @@ export default function HomeScreen() {
       />
 
       {/* Login Modal */}
-      <Login visible={showLogin} onClose={() => setShowLogin(false)} />
+      <Login
+        visible={showLogin}
+        onClose={() => setShowLogin(false)}
+        setIsLogged={setIsLogged}
+        isLogin={isLogin}
+        setIsLogin={setIsLogin}
+      />
       {/* Side Menu */}
       {!isLargeScreen && (
         <SideMenu
           visible={isMenuOpen}
           onClose={() => setIsMenuOpen(false)}
           setShowLogin={setShowLogin}
+          onPressProfile={() => router.push("/(tabs)/profile")}
+            setIsLogin={setIsLogin}
         />
       )}
     </SafeAreaView>
@@ -403,57 +374,6 @@ const styles = StyleSheet.create({
   },
   containerDark: {
     backgroundColor: "#151718",
-  },
-  header: {
-    borderBottomWidth: 1,
-    borderBottomColor: "#ececf0",
-    backgroundColor: "#fff",
-  },
-  headerDark: {
-    backgroundColor: "#151718",
-    borderBottomColor: "#2a2a2a",
-  },
-  headerContent: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-  },
-  logo: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
-  logoText: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#030213",
-  },
-  logoTextDark: {
-    color: "#fff",
-  },
-  headerActions: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-  },
-  iconButton: {
-    width: 40,
-    height: 40,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  navItem: {
-    paddingHorizontal: 8,
-  },
-  navText: {
-    fontSize: 14,
-    fontWeight: "500",
-    color: "#030213",
-  },
-  navTextDark: {
-    color: "#fff",
   },
   loginText: {
     fontSize: 14,
@@ -504,7 +424,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   filtersDark: {
-    backgroundColor: "#1a1a1a",
+    backgroundColor: "#202020ff",
   },
   searchContainer: {
     flexDirection: "row",

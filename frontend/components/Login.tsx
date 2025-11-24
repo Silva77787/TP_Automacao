@@ -1,4 +1,5 @@
 import { API_ENDPOINTS } from "@/constants/api";
+import { useAuth } from "@/context/AuthContext";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
 import {
@@ -18,17 +19,26 @@ import { Input } from "./ui/input";
 interface LoginProps {
   visible: boolean;
   onClose: () => void;
+  setIsLogged: (isLogged: boolean) => void;
+  isLogin: boolean;
+  setIsLogin: (is: boolean) => void;
 }
 
-export function Login({ visible, onClose }: LoginProps) {
-  const [isLogin, setIsLogin] = useState(false);
+export function Login({
+  visible,
+  onClose,
+  setIsLogged,
+  isLogin,
+  setIsLogin,
+}: LoginProps) {
+  const { setUser } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
 
   const { width } = useWindowDimensions();
-  const isLargeScreen = width >= 768; 
+  const isLargeScreen = width >= 768;
   const containerWidth = isLargeScreen ? "50%" : "85%";
   const containerHeight = isLargeScreen ? "80%" : "80%";
 
@@ -45,7 +55,15 @@ export function Login({ visible, onClose }: LoginProps) {
         const data = await response.json();
         if (response.ok) {
           console.log("Login successful", data);
+          setIsLogged(true);
+
+          setUser({
+            username: data.username,
+            email: data.email,
+          });
+
           Alert.alert("Success", "Login successful!");
+
           onClose();
           setEmail("");
           setPassword("");
@@ -90,19 +108,45 @@ export function Login({ visible, onClose }: LoginProps) {
       visible={visible}
       animationType="fade"
       transparent
-      onRequestClose={onClose}
+      onRequestClose={() => {
+        onClose();
+        setEmail("");
+        setPassword("");
+        setName("");
+      }}
     >
       <View style={styles.overlay}>
         {/* BACKDROP que fecha ao clicar fora */}
-        <Pressable style={styles.backdrop} onPress={onClose} />
+        <Pressable
+          style={styles.backdrop}
+          onPress={() => {
+            onClose();
+            setEmail("");
+            setPassword("");
+            setName("");
+          }}
+        />
 
-        <View style={[styles.container, { width: containerWidth, height: containerHeight }]}>
+        <View
+          style={[
+            styles.container,
+            { width: containerWidth, height: containerHeight },
+          ]}
+        >
           <ScrollView
             style={styles.scrollView}
             showsVerticalScrollIndicator={false}
           >
             <View style={styles.header}>
-              <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+              <TouchableOpacity
+                onPress={() => {
+                  onClose();
+                  setEmail("");
+                  setPassword("");
+                  setName("");
+                }}
+                style={styles.closeButton}
+              >
                 <Ionicons name="close" size={18} color="white" />
               </TouchableOpacity>
             </View>
@@ -194,7 +238,14 @@ export function Login({ visible, onClose }: LoginProps) {
                 <Text style={styles.switchText}>
                   {isLogin ? "Não tem uma conta? " : "Já tem uma conta? "}
                 </Text>
-                <TouchableOpacity onPress={() => setIsLogin(!isLogin)}>
+                <TouchableOpacity
+                  onPress={() => {
+                    setIsLogin(!isLogin);
+                    setEmail("");
+                    setPassword("");
+                    setName("");
+                  }}
+                >
                   <Text style={styles.switchLink}>
                     {isLogin ? "Criar conta" : "Entrar"}
                   </Text>

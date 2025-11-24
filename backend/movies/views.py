@@ -9,7 +9,6 @@ from django.contrib.auth.hashers import check_password
 from .models import PlataformaUser, Movie, Review
 # Create your views here.
 
-
 def get_movie(request, movie_id):
     url = f"https://api.themoviedb.org/3/movie/{movie_id}"
 

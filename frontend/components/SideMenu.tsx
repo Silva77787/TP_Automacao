@@ -1,8 +1,11 @@
+import { useAuth } from "@/context/AuthContext";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import Feather from "@expo/vector-icons/Feather";
 import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import React from "react";
 import {
+  Alert,
   Modal,
   Pressable,
   StyleSheet,
@@ -15,15 +18,42 @@ import { Button } from "./ui/button";
 interface SideMenuProps {
   visible: boolean;
   onClose: () => void;
-  onLoginPress?: () => void;
   setShowLogin: (login: boolean) => void;
+  onPressProfile: () => void;
+  isLogged?: boolean;
+  setIsLogged?: (isLogged: boolean) => void;
+  setIsLogin?: (value: boolean) => void; 
 }
 
-const SideMenu: React.FC<SideMenuProps> = ({
+export default function SideMenu({
   visible,
   onClose,
   setShowLogin,
-}) => {
+  onPressProfile,
+  isLogged,
+  setIsLogged,setIsLogin,
+}: SideMenuProps) {
+  const { user, logout } = useAuth();
+  const computedIsLogged = typeof isLogged === "boolean" ? isLogged : !!user;
+
+  const handleLogout = () => {
+    logout(); // limpa o user no contexto
+    setIsLogged?.(false); // atualiza estado local se vier das props
+    Alert.alert("Success", "You have been signed out.");
+    onClose();
+  };
+
+  const handleLoginPress = () => {
+    setIsLogin?.(true);   
+    setShowLogin(true);
+    onClose();
+  };
+
+  const handleCreateAccountPress = () => {
+    setIsLogin?.(false);  
+    setShowLogin(true);
+    onClose();
+  };
   return (
     <Modal visible={visible} transparent animationType="fade">
       <View style={styles.overlay}>
@@ -52,20 +82,53 @@ const SideMenu: React.FC<SideMenuProps> = ({
             <Text style={styles.menuItemText}>My List</Text>
           </TouchableOpacity>
 
-          <Button
-            variant="secondary"
-            size="sm"
-            onPress={() => setShowLogin(true)}
-            style={styles.loginButton}
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={() => {
+              onClose();
+              onPressProfile();
+            }}
           >
-            Login
-          </Button>
+            <MaterialIcons name="person-outline" size={18} color="#687076" />
+            <Text style={styles.menuItemText}>Profile</Text>
+          </TouchableOpacity>
+
+          {!computedIsLogged ? (
+            <>
+              <Button
+                variant="secondary"
+                size="sm"
+                onPress={handleLoginPress}
+                style={styles.actionButton}
+              >
+                Login
+              </Button>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onPress={handleCreateAccountPress}
+                style={styles.actionButton}
+              >
+                Create Account
+              </Button>
+            </>
+          ) : (
+            <Button
+              variant="secondary"
+              size="sm"
+              onPress={handleLogout}
+              style={styles.actionButton}
+            >
+              Sign out
+            </Button>
+          )}
         </View>
         <Pressable style={styles.backdrop} onPress={onClose} />
       </View>
     </Modal>
   );
-};
+}
 
 const styles = StyleSheet.create({
   overlay: {
@@ -101,7 +164,8 @@ const styles = StyleSheet.create({
   closeButton: {
     flexDirection: "row",
     justifyContent: "flex-end",
-  }
+  },
+  actionButton: {
+    marginTop: 10,
+  },
 });
-
-export default SideMenu;
