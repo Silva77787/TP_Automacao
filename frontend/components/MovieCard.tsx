@@ -18,9 +18,6 @@ interface MovieCardProps extends Movie {
   style?: StyleProp<ViewStyle>;
 }
 
-// const { width } = Dimensions.get("window");
-// const cardWidth = (width - 48) / 2; // 2 columns with padding
-
 export function MovieCard({
   title,
   year,

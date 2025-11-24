@@ -4,6 +4,7 @@ import { MovieCard } from "@/components/MovieCard";
 import { MovieDetails } from "@/components/MovieDetails";
 import SideMenu from "@/components/SideMenu";
 import { Button } from "@/components/ui/button";
+
 import { useAuth } from "@/context/AuthContext";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { Movie } from "@/types/movie";
@@ -24,7 +25,6 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-// Sample movies data - replace with API call later
 const MOVIES: Movie[] = [
   {
     id: 1,
@@ -122,6 +122,9 @@ const GENRES = [
 ];
 
 export default function HomeScreen() {
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === "dark";
+
   const { width } = useWindowDimensions();
   const isLargeScreen = width >= 768;
 
@@ -143,23 +146,18 @@ export default function HomeScreen() {
   const [selectedGenre, setSelectedGenre] = useState("All");
   const [showLogin, setShowLogin] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isLogged, setIsLogged] = useState(false);
   const [isLogin, setIsLogin] = useState(true);
 
   const { user } = useAuth();
+  const isLogged = !!user;
 
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === "dark";
+  const router = useRouter();
 
   useEffect(() => {
     if (isLargeScreen && isMenuOpen) {
       setIsMenuOpen(false);
     }
   }, [isLargeScreen, isMenuOpen]);
-
-  useEffect(() => {
-    setIsLogged(!!user);
-  }, [user]);
 
   const filteredMovies = MOVIES.filter((movie) => {
     const matchesSearch = movie.title
@@ -169,8 +167,6 @@ export default function HomeScreen() {
       selectedGenre === "All" || movie.genre === selectedGenre;
     return matchesSearch && matchesGenre;
   });
-
-  const router = useRouter();
 
   return (
     <SafeAreaView
@@ -186,8 +182,6 @@ export default function HomeScreen() {
         showFullMenu={true}
         onOpenMenu={() => setIsMenuOpen(true)}
         onLogin={() => setShowLogin(true)}
-        isLogged={isLogged}
-        setIsLogged={setIsLogged}
       />
 
       <ScrollView
@@ -347,7 +341,6 @@ export default function HomeScreen() {
       <Login
         visible={showLogin}
         onClose={() => setShowLogin(false)}
-        setIsLogged={setIsLogged}
         isLogin={isLogin}
         setIsLogin={setIsLogin}
       />
@@ -358,7 +351,7 @@ export default function HomeScreen() {
           onClose={() => setIsMenuOpen(false)}
           setShowLogin={setShowLogin}
           onPressProfile={() => router.push("/(tabs)/profile")}
-            setIsLogin={setIsLogin}
+          setIsLogin={setIsLogin}
         />
       )}
     </SafeAreaView>

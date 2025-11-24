@@ -1,9 +1,10 @@
 import Header from "@/components/Header";
 import { Login } from "@/components/Login";
+import MovieHistoryItem from "@/components/MovieHistoryItem";
 import { API_ENDPOINTS } from "@/constants/api";
 import { useAuth } from "@/context/AuthContext";
 import { useColorScheme } from "@/hooks/use-color-scheme";
-import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import React, { useEffect, useState } from "react";
@@ -21,7 +22,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-const Profile = () => {
+export default function Profile() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
 
@@ -41,7 +42,6 @@ const Profile = () => {
 
   const [authVisible, setAuthVisible] = useState(false);
   const [modalIsLogin, setModalIsLogin] = useState(true);
-  const [isLogged, setIsLogged] = useState(false);
   const [saving, setSaving] = useState(false);
 
   const [loading, setLoading] = useState(false);
@@ -172,7 +172,6 @@ const Profile = () => {
         <Login
           visible={authVisible}
           onClose={() => setAuthVisible(false)}
-          setIsLogged={setIsLogged}
           isLogin={modalIsLogin}
           setIsLogin={setModalIsLogin}
         />
@@ -376,45 +375,7 @@ const Profile = () => {
       </ScrollView>
     </SafeAreaView>
   );
-};
-
-interface MovieHistoryItemProps {
-  title: string;
-  timeAgo: string;
-  rating: number;
 }
-
-const MovieHistoryItem = ({
-  title,
-  timeAgo,
-  rating,
-}: MovieHistoryItemProps) => {
-  const stars = Array.from({ length: 5 });
-
-  return (
-    <View style={styles.historyItem}>
-      <View>
-        <Text style={styles.historyTitle}>{title}</Text>
-        <Text style={styles.historyTime}>{timeAgo}</Text>
-      </View>
-
-      <View style={styles.historyRight}>
-        <View style={styles.starRow}>
-          {stars.map((_, index) => (
-            <MaterialIcons
-              key={index}
-              name={index < rating ? "star" : "star-border"}
-              size={18}
-              color="#facc15"
-            />
-          ))}
-        </View>
-      </View>
-    </View>
-  );
-};
-
-export default Profile;
 
 const styles = StyleSheet.create({
   safeArea: {
@@ -628,35 +589,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "500",
   },
-
-  // Histórico
-  historyItem: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingVertical: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: "#9BA1A6" + 50,
-  },
-  historyTitle: {
-    color: "#f9fafb",
-    fontSize: 14,
-    fontWeight: "500",
-  },
-  historyTime: {
-    color: "#9ca3af",
-    fontSize: 12,
-  },
-  historyRight: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
-  starRow: {
-    flexDirection: "row",
-    gap: 2,
-  },
-
   // Estatísticas
   statsCard: {
     backgroundColor: "#151718",

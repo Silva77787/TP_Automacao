@@ -19,7 +19,6 @@ import { Input } from "./ui/input";
 interface LoginProps {
   visible: boolean;
   onClose: () => void;
-  setIsLogged: (isLogged: boolean) => void;
   isLogin: boolean;
   setIsLogin: (is: boolean) => void;
 }
@@ -27,7 +26,6 @@ interface LoginProps {
 export function Login({
   visible,
   onClose,
-  setIsLogged,
   isLogin,
   setIsLogin,
 }: LoginProps) {
@@ -55,7 +53,6 @@ export function Login({
         const data = await response.json();
         if (response.ok) {
           console.log("Login successful", data);
-          setIsLogged(true);
 
           setUser({
             username: data.username,

@@ -12,8 +12,6 @@ interface Props {
   showFullMenu?: boolean;
   onOpenMenu?: () => void;
   onLogin?: () => void;
-  isLogged?: boolean;
-  setIsLogged?: (isLogged: boolean) => void;
 }
 
 export default function Header({
@@ -21,17 +19,15 @@ export default function Header({
   isLargeScreen,
   showFullMenu = true,
   onOpenMenu,
-  onLogin,
-  isLogged,
-  setIsLogged,
+  onLogin
 }: Props) {
 
   const router = useRouter();
-  const { logout } = useAuth();
+  const { user, logout } = useAuth();
+  const isLogged = !!user;
 
   const handleLogout = () => {
     logout(); 
-    setIsLogged?.(false); 
     Alert.alert("Success", "You have been signed out.");
   };
 
