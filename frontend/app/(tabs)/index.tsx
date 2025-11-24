@@ -424,7 +424,7 @@ const styles = StyleSheet.create({
     height: 44,
   },
   searchContainerDark: {
-    backgroundColor: "#2a2a2a",
+    backgroundColor: "#fff",
   },
   searchIcon: {
     marginRight: 8,
