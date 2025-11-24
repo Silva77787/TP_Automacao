@@ -121,7 +121,6 @@ export default function SideMenu({
             <>
               <Button
                 variant="default"
-                size="sm"
                 onPress={handleLoginPress}
                 style={styles.actionButton}
               >
@@ -130,7 +129,6 @@ export default function SideMenu({
 
               <Button
                 variant="outline"
-                size="sm"
                 onPress={handleCreateAccountPress}
                 style={styles.actionButton}
               >
@@ -140,7 +138,6 @@ export default function SideMenu({
           ) : (
             <Button
               variant="default"
-              size="sm"
               onPress={handleLogout}
               style={styles.actionButton}
             >
