@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "findyourmovie",
-    "slug": "findyourmovie",
+    "name": "CineHub",
+    "slug": "CineHub",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "findyourmovie",
+    "scheme": "cinehub",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {

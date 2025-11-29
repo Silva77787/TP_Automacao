@@ -35,7 +35,7 @@ def populate_database_if_empty():
                 m_obj, created = Movie.objects.get_or_create(
                     title=mv.get("original_title", ""),
                     description=mv.get("overview", ""),
-                    release_date=mv.get("release_date"),
+                    release_date=mv.get("release_date") or "1900-01-01",
                     rating=0,
                     total_ratings=0
                 )

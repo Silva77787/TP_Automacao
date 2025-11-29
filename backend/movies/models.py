@@ -48,3 +48,13 @@ class MovieDirector(models.Model):
         unique_together = (('movie', 'director'),)
 
         
+class Review(models.Model):
+    user = models.ForeignKey(PlataformaUser, on_delete=models.CASCADE)
+    movie = models.ForeignKey(Movie, on_delete=models.CASCADE)
+    rating = models.FloatField()  
+    description = models.TextField(blank=True) 
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        db_table = 'review'
+        unique_together = (('user', 'movie'),) 
