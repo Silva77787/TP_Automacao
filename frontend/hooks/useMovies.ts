@@ -26,9 +26,10 @@ interface CatalogResponse {
 interface MovieDetailsResponse {
   success: boolean;
   movie: Movie & {
-    reviews: Array<{ id: number; user: string; rating: number; description: string; created_at: string }>;
+    reviews: Array<{ id: number; username: string; rating: number; description: string; created_at: string }>;
   };
   user_rating?: number | null; 
+  user_description?: String;
 }
 
 export function useMovies() {
@@ -84,6 +85,7 @@ export function useMovieDetails(movieId: number | null) {
   const [movie, setMovie] = useState<(Movie & { reviews: any[] }) | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  
 
   const fetchDetails = async () => {
     if (!movieId || !accessToken) return;
@@ -105,13 +107,16 @@ export function useMovieDetails(movieId: number | null) {
 
       const data: MovieDetailsResponse = await response.json();
 
+      
+
       if (data.success && data.movie) {
         console.log("✅ Data received. User Rating:", data.user_rating);
-
+        
 
         const movieWithRating = {
-            ...data.movie,
-            user_rating: data.user_rating // 
+          ...data.movie,
+          user_rating: data.user_rating ?? null,
+          user_description: data.user_description || "",
         };
 
         setMovie(movieWithRating);

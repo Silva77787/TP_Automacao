@@ -87,9 +87,10 @@ class UserUpdateSerializer(serializers.ModelSerializer):
         return instance
 
 class ReviewSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(source='user.username', read_only=True)
     class Meta:
         model = Review
-        fields = ['id', 'user', 'movie', 'rating', 'description', 'created_at']
+        fields = ['id', 'username', 'rating', 'description', 'created_at']
         read_only_fields = ['created_at', 'id']
 
 

@@ -204,7 +204,7 @@ const handleSubmit = async () => {
               {!isLogin && (
                 <View style={styles.inputContainer}>
                   <Text style={[styles.label, { color: textPrimary }]}>
-                    Nome de usuário
+                    Username
                   </Text>
                   <Input
                     placeholder="Seu nome de usuário"
@@ -218,7 +218,7 @@ const handleSubmit = async () => {
 
               <View style={styles.inputContainer}>
                 <Text style={[styles.label, { color: textPrimary }]}>
-                  Email
+                  Username or Email
                 </Text>
                 <Input
                   placeholder="seu@email.com"
@@ -232,7 +232,7 @@ const handleSubmit = async () => {
 
               <View style={styles.inputContainer}>
                 <Text style={[styles.label, { color: textPrimary }]}>
-                  Senha
+                  Password
                 </Text>
                 <Input
                   placeholder="••••••••"

@@ -11,6 +11,14 @@ export interface Movie {
   year?: number; 
   runtime?: number; 
   user_rating?: number | null;
+  user_description?: string;
+  reviews?: Array<{
+    id: number;
+    username: string;
+    rating: number;
+    description: string;
+    created_at: string;
+  }>;
 }
 
 export interface MovieDisplay extends Movie {

@@ -193,15 +193,18 @@ def get_movie_details(request, movie_id):
         movie = Movie.objects.prefetch_related('genres', 'directors', 'review_set').get(id=movie_id)
         serializer = MovieDetailSerializer(movie)
         user_rating = None
+        user_description = ""
         user_review = Review.objects.filter(user=request.user, movie=movie).first()
         if user_review:
             user_rating = user_review.rating
+            user_description = user_review.description or ""
 
         return Response(
             {
                 'success': True,
                 'movie': serializer.data,
-                'user_rating': user_rating
+                'user_rating': user_rating,
+                'user_description': user_description,
             },
             status=status.HTTP_200_OK
         )

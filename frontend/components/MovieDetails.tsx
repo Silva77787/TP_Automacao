@@ -40,6 +40,7 @@ export function MovieDetails({
   const { width, height } = useWindowDimensions();
   const [ratingInput, setRatingInput] = useState("");
   const [userRating, setUserRating] = useState<number | null>(null);
+  const [ratingDescription, setRatingDescription] = useState("");
 
   useEffect(() => {
     if (movie?.user_rating && movie.user_rating > 0) {
@@ -48,6 +49,7 @@ export function MovieDetails({
     } else {
       setRatingInput("");
       setUserRating(null);
+      
     }
   }, [movie]);
 
@@ -80,16 +82,22 @@ export function MovieDetails({
       Alert.alert("Invalid Rating", "Please enter a number between 1 and 10.");
       return;
     }
-
-    const result = await rateMovie(movie.id, rating, "");
+    
+    const result = await rateMovie(movie.id, rating, ratingDescription);
     if (result) {
       setUserRating(rating);
+      movie.user_description = ratingDescription;
       if(onRated && movie){
         onRated(movie.id,result.movieAverageRating, result.movieTotalRatings, rating);
       }
       Alert.alert("Success", "Movie rated successfully!");
     }
   };
+  //Filter to remove user own rating from the list
+    const otherReviews =
+    movie.reviews?.filter(
+      (rev: any) => rev.username !== user?.username
+    ) || [];
 
   return (
     <Modal
@@ -195,18 +203,22 @@ export function MovieDetails({
                   </Text>
                   {/* Show either the input box OR the "not evaluated" message - INLINE */}
                   {userRating && userRating > 0 ? (
-                  <View style={styles.ratingInputRow}>
-                    <Text style={[styles.ratingLabel,{color: textPrimary,marginLeft:8}]}>
-                      {userRating} / 10
-                    </Text>
-                  </View>
+                    <View>
+                      <View style={styles.ratingInputRow}>
+                        <Text style={[styles.ratingLabel,{color: textPrimary,marginLeft:8}]}>
+                          {userRating}
+                        </Text>
+                      </View>
+                      <Text style={[styles.sectionText, {color : textPrimary, marginTop :4}]}>
+                        Descrição : {movie.user_description || ""}
+                      </Text>
+                    </View>
                   ) : (
                     <Text style = {[styles.ratingLabel, {color : textSecondary,marginLeft: 8, fontStyle:'italic'}]}>
-                      Movie not evaluated yet
+                      Ainda não avaliou este Filme
                     </Text>
                   )}
                 </View>
-
                   {/* Input row - always show for typing new rating */}
                   <View style = {styles.ratingInputRow}>
                     <TextInput
@@ -222,6 +234,30 @@ export function MovieDetails({
                 </View>
               </View>
 
+              {/*Description Input*/}
+              <View style={{marginTop : 8}}>
+                <Text style={[styles.sectionText, {color: textSecondary, marginBottom: 4}]}>
+                  Sua Descrição (Opcional):
+                </Text>
+                <TextInput
+                  value={ratingDescription}
+                  onChangeText={setRatingDescription}
+                  placeholder="Escreva o que pensa acerca do filme"
+                  placeholderTextColor={textSecondary}
+                  multiline
+                  style={{
+                    borderWidth:1,
+                    borderColor: textSecondary,
+                    borderRadius: 4,
+                    paddingHorizontal: 8,
+                    paddingVertical: 6,
+                    color : textPrimary,
+                    minHeight: 60,
+                    textAlignVertical: "top",
+                  }}
+                />
+              </View>
+
               {/* ACTION BUTTONS */}
               <View style={styles.actions}>
                 <Button
@@ -233,6 +269,27 @@ export function MovieDetails({
                 >
                   {user ? "Classificar Filme" : "Faça login para classificar"}
                 </Button>
+              </View>
+              <View style={styles.section}>
+                <Text style={[styles.sectionTitle, {color: textSecondary}]}>
+                  Ratings
+                </Text>
+                {otherReviews.length > 0 ? (
+                  otherReviews.map((rev: any) =>(
+                    <View key={rev.id} style={{ marginBottom: 8 }}>
+                      <Text style={[styles.sectionText, { color: textPrimary }]}>
+                        Username: {rev.username}  Rating: {rev.rating}
+                      </Text>
+                      <Text style={[styles.sectionText, { color: textSecondary }]}>
+                        Descrição: {rev.description || ""}
+                      </Text>
+                      </View>
+                  ))
+                ) : (
+                  <Text style={[styles.sectionText, { color: textSecondary }]}>
+                    No ratings yet.
+                  </Text>
+                )}
               </View>
             </View>
           </ScrollView>
