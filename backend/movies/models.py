@@ -7,9 +7,26 @@ class PlataformaUser(models.Model):
     username = models.CharField(max_length=128, primary_key=True)
     password = models.CharField(max_length=128)
     email = models.CharField(max_length=128, unique=True)
+    USERNAME_FIELD = 'username'
+    REQUIRED_FIELDS = ['email','password'] 
 
     class Meta:
         db_table = 'plataformuser'
+    @property
+    def id(self):
+        return self.username
+    @property
+    def is_authenticated(self):
+        return True
+    @property
+    def is_anonymous(self):
+        return False
+    @property
+    def is_active(self):
+        return True
+    @property
+    def is_staff(self):
+        return False
         
 class Genre(models.Model):
     gerne_name = models.CharField(max_length=128, db_column='gerne_name')
@@ -28,6 +45,7 @@ class Movie(models.Model):
     release_date = models.DateField()
     rating = models.FloatField()
     total_ratings = models.IntegerField()
+    image = models.CharField(max_length=300, blank=True, null=True)
     genres = models.ManyToManyField(Genre, through='GenreMovie')
     directors = models.ManyToManyField(Director, through='MovieDirector')
     class Meta:
