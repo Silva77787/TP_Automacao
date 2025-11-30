@@ -21,6 +21,7 @@ jobs:
         run: |
           cd frontend
           npm install
+          npm install @react-native-async-storage/async-storage
 
       - name: Build WEB (Expo)
         run: |
