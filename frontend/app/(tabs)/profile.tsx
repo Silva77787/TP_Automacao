@@ -296,7 +296,7 @@ export default function Profile() {
               disabled={loading}
               variant="outline"
             >
-              Create Account
+              Criar Conta
             </Button>
           </View>
         </View>

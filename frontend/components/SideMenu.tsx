@@ -101,7 +101,10 @@ export default function SideMenu({
             </Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.menuItem}>
+          <TouchableOpacity style={styles.menuItem} onPress={() => {
+              onClose();
+              router.push("/mylist");
+            }}>
             <FontAwesome5 name="list-ul" size={18} color={iconColor} />
             <Text style={[styles.menuItemText, { color: textMuted }]}>
               My List

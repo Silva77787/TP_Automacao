@@ -233,7 +233,7 @@ export default function MyList() {
               disabled={loading}
               variant="outline"
             >
-              Create Account
+              Criar Conta
             </Button>
           </View>
         </View>
