@@ -7,7 +7,6 @@ import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { useRouter } from "expo-router";
 import React from "react";
 import {
-  Alert,
   Modal,
   Pressable,
   StyleSheet,
@@ -15,6 +14,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import Toast from "react-native-toast-message";
 import { Button } from "./ui/button";
 interface SideMenuProps {
   visible: boolean;
@@ -48,7 +48,11 @@ export default function SideMenu({
 
   const handleLogout = () => {
     logout();
-    Alert.alert("Success", "You have been signed out.");
+    Toast.show({
+      type: "success",
+      text1: "Sessão terminada",
+      text2: "Saiu da conta com sucesso",
+    });
     onClose();
   };
 

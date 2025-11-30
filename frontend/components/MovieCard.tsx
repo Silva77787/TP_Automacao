@@ -50,7 +50,6 @@ export function MovieCard({
   const imageUri = image
     ? `https://image.tmdb.org/t/p/w300${image}` 
     : "https://via.placeholder.com/300x450?text=No+Image";
-  console.log("MovieCard id:", id, "Final image URI:", imageUri);
 
   return (
     <TouchableOpacity onPress={onPress} activeOpacity={0.8}>
@@ -62,6 +61,7 @@ export function MovieCard({
             contentFit="cover"
             transition={200}
             placeholder="L2~BS0os00oy00_3t757R%hh00"
+            cachePolicy="disk"
           />
           <View style={styles.overlay}>
             <Badge variant="primary" style={styles.badge}>

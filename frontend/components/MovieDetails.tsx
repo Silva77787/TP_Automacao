@@ -1,32 +1,35 @@
-import React, { useState, useEffect } from "react";
-import {
-  View,
-  Text,
-  TextInput,
-  StyleSheet,
-  Modal,
-  ScrollView,
-  TouchableOpacity,
-  useWindowDimensions,
-  Pressable,
-  Alert,
-} from "react-native";
-import { Image } from "expo-image";
-import { Ionicons } from "@expo/vector-icons";
-import { Badge } from "./ui/badge";
-import { Button } from "./ui/button";
-import { useTheme } from "@/context/ThemeContext";
 import { useAuth } from "@/context/AuthContext";
+import { useTheme } from "@/context/ThemeContext";
 import { useRateMovie } from "@/hooks/useMovies";
 import { Movie } from "@/types/movie";
+import { Ionicons } from "@expo/vector-icons";
+import { Image } from "expo-image";
+import React, { useEffect, useState } from "react";
+import {
+  Modal,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  useWindowDimensions,
+  View,
+} from "react-native";
+import { Badge } from "./ui/badge";
+import { Button } from "./ui/button";
 
 interface MovieDetailsProps {
   movie: Movie | null;
   visible: boolean;
   onClose: () => void;
-  onRated?: (movieId: number, newAverage: number, newTotal: number, userRating: number) => void;
+  onRated?: (
+    movieId: number,
+    newAverage: number,
+    newTotal: number,
+    userRating: number
+  ) => void;
 }
-
 
 export function MovieDetails({
   movie,
@@ -38,19 +41,28 @@ export function MovieDetails({
   const { user } = useAuth();
   const { rateMovie, loading: ratingLoading } = useRateMovie();
   const { width, height } = useWindowDimensions();
-  const [ratingInput, setRatingInput] = useState("");
+
   const [userRating, setUserRating] = useState<number | null>(null);
   const [ratingDescription, setRatingDescription] = useState("");
+  const [isRatingMode, setIsRatingMode] = useState(false);
+  const [initialUserRating, setInitialUserRating] = useState<number | null>(
+    null
+  );
+  const [initialDescription, setInitialDescription] = useState<string>("");
 
   useEffect(() => {
     if (movie?.user_rating && movie.user_rating > 0) {
-      setRatingInput(movie.user_rating.toString());
       setUserRating(movie.user_rating);
+      setInitialUserRating(movie.user_rating);
+      setRatingDescription(movie.user_description || "");
+      setInitialDescription(movie.user_description || "");
     } else {
-      setRatingInput("");
       setUserRating(null);
-      
+      setInitialUserRating(null);
+      setRatingDescription("");
+      setInitialDescription("");
     }
+    setIsRatingMode(false);
   }, [movie]);
 
   if (!movie) return null;
@@ -67,37 +79,59 @@ export function MovieDetails({
   const imageUri = movie.image
     ? `https://image.tmdb.org/t/p/w500${movie.image}`
     : "https://via.placeholder.com/500x750?text=No+Image";
-  console.log("Movie image path:", movie.image);
-  console.log("Final image URI:", imageUri);
+
+  const handleStartRating = () => {
+    if (!user) {
+      return;
+    }
+    setIsRatingMode(true);
+    setUserRating(initialUserRating ?? null);
+    setRatingDescription(initialDescription ?? "");
+  };
+
+  const handleCancelRating = () => {
+    setUserRating(initialUserRating);
+    setRatingDescription(initialDescription);
+    setIsRatingMode(false);
+  };
+
+  const handleSelectStar = (value: number) => {
+    setUserRating(value);
+  };
+
   const handleRateMovie = async () => {
     if (!user) {
-      Alert.alert("Error", "You must be logged in to rate movies");
       return;
     }
 
-    const rating = parseFloat(ratingInput);
-    
-    // Validation
-    if (isNaN(rating) || rating < 1 || rating > 10) {
-      Alert.alert("Invalid Rating", "Please enter a number between 1 and 10.");
+    if (!userRating || userRating < 1 || userRating > 10) {
       return;
     }
-    
-    const result = await rateMovie(movie.id, rating, ratingDescription);
+
+    const result = await rateMovie(movie.id, userRating, ratingDescription);
+
     if (result) {
-      setUserRating(rating);
+      // guardar como estado inicial (para próximo edit)
+      setInitialUserRating(userRating);
+      setInitialDescription(ratingDescription);
       movie.user_description = ratingDescription;
-      if(onRated && movie){
-        onRated(movie.id,result.movieAverageRating, result.movieTotalRatings, rating);
+
+      if (onRated && movie) {
+        onRated(
+          movie.id,
+          result.movieAverageRating,
+          result.movieTotalRatings,
+          userRating
+        );
       }
-      Alert.alert("Success", "Movie rated successfully!");
+
+      setIsRatingMode(false);
     }
   };
+
   //Filter to remove user own rating from the list
-    const otherReviews =
-    movie.reviews?.filter(
-      (rev: any) => rev.username !== user?.username
-    ) || [];
+  const otherReviews =
+    movie.reviews?.filter((rev: any) => rev.username !== user?.username) || [];
 
   return (
     <Modal
@@ -149,13 +183,21 @@ export function MovieDetails({
                   </Text>
                 </View>
                 <View style={styles.metaItem}>
-                  <Ionicons name="calendar-outline" size={16} color={textSecondary} />
+                  <Ionicons
+                    name="calendar-outline"
+                    size={16}
+                    color={textSecondary}
+                  />
                   <Text style={[styles.metaText, { color: textSecondary }]}>
                     {year}
                   </Text>
                 </View>
                 <View style={styles.metaItem}>
-                  <Ionicons name="people-outline" size={16} color={textSecondary} />
+                  <Ionicons
+                    name="people-outline"
+                    size={16}
+                    color={textSecondary}
+                  />
                   <Text style={[styles.metaText, { color: textSecondary }]}>
                     {movie.total_ratings} ratings
                   </Text>
@@ -174,7 +216,7 @@ export function MovieDetails({
                 <Text style={[styles.sectionTitle, { color: textSecondary }]}>
                   Sinopse
                 </Text>
-                <Text style={[styles.sectionText, { color: textSecondary }]}>
+                <Text style={[styles.sectionText, { color: textPrimary }]}>
                   {movie.description}
                 </Text>
               </View>
@@ -197,94 +239,211 @@ export function MovieDetails({
                 <Text style={[styles.sectionTitle, { color: textSecondary }]}>
                   Classificação
                 </Text>
-                <View style={styles.ratingInputContainer}>
-                  <Text style={[styles.ratingLabel, { color: textPrimary }]}>
-                    Sua classificação (1-10):
-                  </Text>
-                  {/* Show either the input box OR the "not evaluated" message - INLINE */}
-                  {userRating && userRating > 0 ? (
-                    <View>
-                      <View style={styles.ratingInputRow}>
-                        <Text style={[styles.ratingLabel,{color: textPrimary,marginLeft:8}]}>
-                          {userRating}
-                        </Text>
-                      </View>
-                      <Text style={[styles.sectionText, {color : textPrimary, marginTop :4}]}>
-                        Descrição : {movie.user_description || ""}
+
+                {/* Info da classificação atual do user (se existir) */}
+                {!isRatingMode && initialUserRating && initialUserRating > 0 ? (
+                  <View style={{ marginBottom: 8 }}>
+                    <View style={styles.userRatingRow}>
+                      <Ionicons name="star" size={16} color="#FFD700" />
+                      <Text
+                        style={[
+                          styles.sectionText,
+                          { color: textPrimary, fontWeight: "500" },
+                        ]}
+                      >
+                        A sua classificação: {initialUserRating}/10
                       </Text>
                     </View>
-                  ) : (
-                    <Text style = {[styles.ratingLabel, {color : textSecondary,marginLeft: 8, fontStyle:'italic'}]}>
-                      Ainda não avaliou este Filme
+
+                    {initialDescription ? (
+                      <Text
+                        style={[
+                          styles.sectionText,
+                          { color: textSecondary, marginTop: 4 },
+                        ]}
+                      >
+                        A sua descrição: {initialDescription}
+                      </Text>
+                    ) : null}
+                  </View>
+                ) : !isRatingMode ? (
+                  <Text
+                    style={[
+                      styles.sectionText,
+                      {
+                        color: textSecondary,
+                        fontStyle: "italic",
+                        marginBottom: 8,
+                      },
+                    ]}
+                  >
+                    Ainda não avaliou este filme.
+                  </Text>
+                ) : null}
+
+                {/* Botão que abre o modo de classificação */}
+                {!isRatingMode && (
+                  <Button
+                    style={{ marginTop: 4 }}
+                    size="lg"
+                    onPress={handleStartRating}
+                    disabled={ratingLoading}
+                  >
+                    {user
+                      ? initialUserRating
+                        ? "Editar classificação"
+                        : "Classificar filme"
+                      : "Faça login para classificar"}
+                  </Button>
+                )}
+
+                {/* Zona de rating só aparece depois de clicar no botão */}
+                {isRatingMode && (
+                  <View style={{ marginTop: 12 }}>
+                    <Text
+                      style={[
+                        styles.sectionText,
+                        { color: textPrimary, marginBottom: 4 },
+                      ]}
+                    >
+                      Escolha uma classificação (1–10):
                     </Text>
-                  )}
-                </View>
-                  {/* Input row - always show for typing new rating */}
-                  <View style = {styles.ratingInputRow}>
+
+                    {/* ESTRELAS 1–10 */}
+                    <View style={styles.starsRow}>
+                      {Array.from({ length: 10 }, (_, i) => i + 1).map(
+                        (value) => {
+                          const filled =
+                            (userRating ?? 0) >= value
+                              ? "star"
+                              : "star-outline";
+                          return (
+                            <TouchableOpacity
+                              key={value}
+                              onPress={() => handleSelectStar(value)}
+                              style={styles.starButton}
+                            >
+                              <Ionicons
+                                name={filled}
+                                size={22}
+                                color="#FFD700"
+                              />
+                            </TouchableOpacity>
+                          );
+                        }
+                      )}
+                    </View>
+
+                    {/* Descrição */}
+                    <Text
+                      style={[
+                        styles.sectionText,
+                        {
+                          color: textSecondary,
+                          marginTop: 12,
+                          marginBottom: 4,
+                        },
+                      ]}
+                    >
+                      A sua descrição (opcional):
+                    </Text>
                     <TextInput
-                      value={ratingInput}
-                      onChangeText={setRatingInput}
-                      placeholder="-"
+                      value={ratingDescription}
+                      onChangeText={setRatingDescription}
+                      placeholder="Escreva o que pensa acerca do filme"
                       placeholderTextColor={textSecondary}
-                      keyboardType="numeric"
-                      maxLength={4}
-                      selectTextOnFocus
-                      style={[styles.ratingInput,{color : textPrimary, borderBottomColor : textSecondary}]}/>
-                  <Text style={[styles.ratingMax, {color : textPrimary}]}>/10</Text>
-                </View>
+                      multiline
+                      style={{
+                        borderWidth: 1,
+                        borderColor: textSecondary,
+                        borderRadius: 4,
+                        paddingHorizontal: 8,
+                        paddingVertical: 6,
+                        color: textPrimary,
+                        minHeight: 60,
+                        textAlignVertical: "top",
+                      }}
+                    />
+
+                    {/* BOTÕES GUARDAR / CANCELAR */}
+                    <View style={styles.actions}>
+                      <Button
+                        style={styles.actionButton}
+                        size="lg"
+                        onPress={handleRateMovie}
+                        loading={ratingLoading}
+                        disabled={ratingLoading}
+                      >
+                        Guardar
+                      </Button>
+                      <Button
+                        style={styles.actionButton}
+                        size="lg"
+                        variant="outline"
+                        onPress={handleCancelRating}
+                        disabled={ratingLoading}
+                      >
+                        Cancelar
+                      </Button>
+                    </View>
+                  </View>
+                )}
               </View>
 
-              {/*Description Input*/}
-              <View style={{marginTop : 8}}>
-                <Text style={[styles.sectionText, {color: textSecondary, marginBottom: 4}]}>
-                  Sua Descrição (Opcional):
-                </Text>
-                <TextInput
-                  value={ratingDescription}
-                  onChangeText={setRatingDescription}
-                  placeholder="Escreva o que pensa acerca do filme"
-                  placeholderTextColor={textSecondary}
-                  multiline
-                  style={{
-                    borderWidth:1,
-                    borderColor: textSecondary,
-                    borderRadius: 4,
-                    paddingHorizontal: 8,
-                    paddingVertical: 6,
-                    color : textPrimary,
-                    minHeight: 60,
-                    textAlignVertical: "top",
-                  }}
-                />
-              </View>
-
-              {/* ACTION BUTTONS */}
-              <View style={styles.actions}>
-                <Button
-                  style={styles.actionButton}
-                  size="lg"
-                  onPress={handleRateMovie}
-                  loading={ratingLoading}
-                  disabled={ratingLoading || !user}
-                >
-                  {user ? "Classificar Filme" : "Faça login para classificar"}
-                </Button>
-              </View>
+              {/* OUTROS RATINGS */}
               <View style={styles.section}>
-                <Text style={[styles.sectionTitle, {color: textSecondary}]}>
+                <Text style={[styles.sectionTitle, { color: textSecondary }]}>
                   Ratings
                 </Text>
+
                 {otherReviews.length > 0 ? (
-                  otherReviews.map((rev: any) =>(
-                    <View key={rev.id} style={{ marginBottom: 8 }}>
-                      <Text style={[styles.sectionText, { color: textPrimary }]}>
-                        Username: {rev.username}  Rating: {rev.rating}
-                      </Text>
-                      <Text style={[styles.sectionText, { color: textSecondary }]}>
-                        Descrição: {rev.description || ""}
-                      </Text>
+                  otherReviews.map((rev: any, index: number) => {
+                    const showDivider = index !== otherReviews.length - 1;
+
+                    return (
+                      <View
+                        key={rev.id}
+                        style={[
+                          styles.reviewItem,
+                          showDivider && styles.reviewItemSeparator,
+                          showDivider && { borderBottomColor: textSecondary },
+                        ]}
+                      >
+                        {/* Linha com username + rating com estrela */}
+                        <View style={styles.reviewRatingRow}>
+                          <Text
+                            style={[styles.sectionText, { color: textPrimary }]}
+                          >
+                            Username: {rev.username}
+                          </Text>
+
+                          <View style={styles.reviewRatingValue}>
+                            <Ionicons name="star" size={14} color="#FFD700" />
+                            <Text
+                              style={[
+                                styles.sectionText,
+                                { color: textPrimary, marginLeft: 4 },
+                              ]}
+                            >
+                              Rating: {rev.rating}/10
+                            </Text>
+                          </View>
+                        </View>
+
+                        {/* Descrição só aparece se existir */}
+                        {rev.description ? (
+                          <Text
+                            style={[
+                              styles.sectionText,
+                              { color: textSecondary, marginTop: 2 },
+                            ]}
+                          >
+                            Descrição: {rev.description}
+                          </Text>
+                        ) : null}
                       </View>
-                  ))
+                    );
+                  })
                 ) : (
                   <Text style={[styles.sectionText, { color: textSecondary }]}>
                     No ratings yet.
@@ -305,7 +464,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "flex-end",
-    backgroundColor: "rgba(0,0,0,0.7)", 
+    backgroundColor: "rgba(0,0,0,0.7)",
   },
   backdrop: {
     ...StyleSheet.absoluteFillObject,
@@ -358,12 +517,13 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   badgeContainer: {
-    flexDirection: 'row', 
+    flexDirection: "row",
     gap: 8,
     marginBottom: 24,
+    flexWrap: "wrap",
   },
   genreBadge: {
-    alignSelf: 'flex-start'
+    alignSelf: "flex-start",
   },
   section: {
     marginBottom: 20,
@@ -377,45 +537,43 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 20,
   },
-  ratingInputContainer: {
-    marginTop: 8,
-  },
-  ratingLabel: {
-    fontSize: 14,
-    fontWeight : "500",
-    marginBottom: 8,
-  },
-  ratingLabelRow: {
-    flexDirection :"row",
-    alignItems : "center",
-    marginBottom : 12,
-  }, 
-  ratingInputRow: {
-    flexDirection: "row",
-    alignItems: "flex-end",
-    gap: 8,
-  },
-  ratingInput: {
-    fontSize: 14,
-    fontWeight: "500",
-    borderBottomWidth: 1,
-    minWidth: 50,
-    textAlign: 'center',
-    paddingBottom: 4,
-    paddingTop : 4,
-  },
-  ratingMax: {
-    fontSize: 14,
-    marginBottom: 0,
-    fontWeight :"500",
-  },
   actions: {
     flexDirection: "row",
     gap: 12,
-    marginTop: 8,
-    marginBottom: 24,
+    marginTop: 12,
   },
   actionButton: {
     flex: 1,
+  },
+  starsRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 4,
+    marginTop: 4,
+  },
+  starButton: {
+    padding: 2,
+  },
+  userRatingRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  reviewItem: {
+    paddingVertical: 8,
+  },
+  reviewItemSeparator: {
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    marginTop: 8,
+    paddingBottom: 8,
+  },
+  reviewRatingRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  reviewRatingValue: {
+    flexDirection: "row",
+    alignItems: "center",
   },
 });

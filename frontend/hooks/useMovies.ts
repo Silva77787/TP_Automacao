@@ -1,8 +1,7 @@
-import { useState, useEffect } from "react";
-import { useAuth } from "@/context/AuthContext";
 import { API_ENDPOINTS } from "@/constants/api";
+import { useAuth } from "@/context/AuthContext";
+import { useCallback, useEffect, useState } from "react";
 
-// Add user_rating to the Movie definition
 export interface Movie {
   id: number;
   title: string;
@@ -10,9 +9,10 @@ export interface Movie {
   release_date: string;
   rating: number;
   total_ratings: number;
-  genres: Array<{ id: number; gerne_name: string }>;
-  directors: Array<{ id: number; name: string; biography: string }>;
-  user_rating?: number | null; // 👈 This allows us to store the user's specific rating
+  genres: { id: number; gerne_name: string }[];
+  directors: { id: number; name: string; biography: string }[];
+  user_rating?: number | null;
+  user_description?: string;
 }
 
 interface CatalogResponse {
@@ -26,10 +26,16 @@ interface CatalogResponse {
 interface MovieDetailsResponse {
   success: boolean;
   movie: Movie & {
-    reviews: Array<{ id: number; username: string; rating: number; description: string; created_at: string }>;
+    reviews: {
+      id: number;
+      username: string;
+      rating: number;
+      description: string;
+      created_at: string;
+    }[];
   };
-  user_rating?: number | null; 
-  user_description?: String;
+  user_rating?: number | null;
+  user_description?: string;
 }
 
 export function useMovies() {
@@ -38,15 +44,16 @@ export function useMovies() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchCatalog = async () => {
-    if (!accessToken) return; // Silent return if no token yet
+  // 👇 ESTA função TEM de ser useCallback
+  const fetchCatalog = useCallback(async () => {
+    if (!accessToken) return; // sem token não faz nada
 
     setLoading(true);
     setError(null);
 
     try {
       console.log("🎬 Fetching movie catalog...");
-      
+
       const response = await fetch(API_ENDPOINTS.CATALOG, {
         method: "GET",
         headers: {
@@ -68,13 +75,13 @@ export function useMovies() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [accessToken]); // 👈 depende só do token
 
   useEffect(() => {
     if (accessToken) {
       fetchCatalog();
     }
-  }, [accessToken]);
+  }, [accessToken, fetchCatalog]);
 
   return { movies, loading, error, refetch: fetchCatalog };
 }
@@ -85,7 +92,6 @@ export function useMovieDetails(movieId: number | null) {
   const [movie, setMovie] = useState<(Movie & { reviews: any[] }) | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
 
   const fetchDetails = async () => {
     if (!movieId || !accessToken) return;
@@ -107,11 +113,8 @@ export function useMovieDetails(movieId: number | null) {
 
       const data: MovieDetailsResponse = await response.json();
 
-      
-
       if (data.success && data.movie) {
         console.log("✅ Data received. User Rating:", data.user_rating);
-        
 
         const movieWithRating = {
           ...data.movie,
@@ -146,7 +149,11 @@ export function useRateMovie() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const rateMovie = async (movieId: number, rating: number, description: string = "") => {
+  const rateMovie = async (
+    movieId: number,
+    rating: number,
+    description: string = ""
+  ) => {
     if (!accessToken) {
       setError("Not authenticated");
       return null;
