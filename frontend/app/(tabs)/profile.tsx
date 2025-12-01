@@ -35,7 +35,7 @@ export default function Profile() {
 
   const [username, setUsername] = useState<string | null>(null);
   const [email, setEmail] = useState<string | null>(null);
-
+  const [memberSince, setMemberSince] = useState<string | null>(null);
   const { user, accessToken } = useAuth();
 
   const [isEditing, setIsEditing] = useState(false);
@@ -211,6 +211,7 @@ export default function Profile() {
         setEmail(data.user.email || "");
         setEditEmail(data.user.email || "");
         setUsername(data.user.username || user.username);
+        setMemberSince(formatDateDDMMYYYY(data.user.joined_date));
         setError(null);
       } else {
         console.log("Erro ao carregar utilizador:", data);
@@ -495,7 +496,7 @@ export default function Profile() {
                 >
                   <Ionicons name="calendar" size={14} color={textMain} />
                   <Text style={[styles.badgeText, { color: textMain }]}>
-                    Membro desde 2024
+                    {memberSince ? `Membro desde ${memberSince}` : "Membro desde -"}
                   </Text>
                 </View>
               </View>
@@ -710,6 +711,17 @@ function mapRatingToStars(rating: number): number {
   const stars = Math.round(rating / 2);
   return Math.min(Math.max(stars, 0), 5);
 }
+function formatDateDDMMYYYY(isoDate: string): string {
+  const d = new Date(isoDate);
+  if (Number.isNaN(d.getTime())) return ""; // fallback simples
+
+  const day = String(d.getDate()).padStart(2, "0");
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const year = d.getFullYear();
+
+  return `${day}-${month}-${year}`;
+}
+
 
 const styles = StyleSheet.create({
   safeArea: {
