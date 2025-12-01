@@ -71,7 +71,7 @@ class Review(models.Model):
     movie = models.ForeignKey(Movie, on_delete=models.CASCADE)
     rating = models.FloatField()  
     description = models.TextField(blank=True) 
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField()
     
     class Meta:
         db_table = 'review'
