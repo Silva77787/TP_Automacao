@@ -1,5 +1,7 @@
 import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/context/ThemeContext";
+import { useToast } from "@/context/ToastContext";
+import { Ionicons } from "@expo/vector-icons";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import Feather from "@expo/vector-icons/Feather";
 import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
@@ -14,7 +16,6 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import Toast from "react-native-toast-message";
 import { Button } from "./ui/button";
 interface SideMenuProps {
   visible: boolean;
@@ -24,6 +25,7 @@ interface SideMenuProps {
   isLogged?: boolean;
   setIsLogged?: (isLogged: boolean) => void;
   setIsLogin?: (value: boolean) => void;
+  onSearch?: () => void;
 }
 
 export default function SideMenu({
@@ -32,7 +34,10 @@ export default function SideMenu({
   setShowLogin,
   onPressProfile,
   setIsLogin,
+  onSearch,
 }: SideMenuProps) {
+  const { showToast } = useToast();
+
   const { user, logout } = useAuth();
   const isLogged = !!user;
 
@@ -48,12 +53,12 @@ export default function SideMenu({
 
   const handleLogout = () => {
     logout();
-    Toast.show({
+
+    showToast({
       type: "success",
-      text1: "Sessão terminada",
-      text2: "Saiu da conta com sucesso",
+      title: "Sessão terminada",
+      message: "Saiu da sua conta com sucesso.",
     });
-    onClose();
   };
 
   const handleLoginPress = () => {
@@ -94,20 +99,50 @@ export default function SideMenu({
             </Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.menuItem}>
-            <Feather name="search" size={18} color={iconColor} />
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={() => {
+              if (onSearch) {
+                onSearch();
+              } else {
+                router.push({
+                  pathname: "/",
+                  params: { focusSearch: "1" },
+                });
+              }
+
+              onClose?.();
+            }}
+          >
+            <Ionicons name="search-outline" size={22} color={iconColor} />
             <Text style={[styles.menuItemText, { color: textMuted }]}>
               Search
             </Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.menuItem} onPress={() => {
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={() => {
               onClose();
               router.push("/mylist");
-            }}>
+            }}
+          >
             <FontAwesome5 name="list-ul" size={18} color={iconColor} />
             <Text style={[styles.menuItemText, { color: textMuted }]}>
               My List
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={() => {
+              onClose();
+              router.push("/recommendations");
+            }}
+          >
+            <Ionicons name="sparkles-outline" size={18} color={iconColor} />
+            <Text style={[styles.menuItemText, { color: textMuted }]}>
+              Recomendações
             </Text>
           </TouchableOpacity>
 

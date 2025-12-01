@@ -1,19 +1,27 @@
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/context/ThemeContext";
+import { useToast } from "@/context/ToastContext";
 import { Entypo, Ionicons } from "@expo/vector-icons";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { useRouter } from "expo-router";
 import React from "react";
-import { Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
-
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 interface Props {
   isLargeScreen?: boolean;
   onOpenMenu?: () => void;
   onLogin?: () => void;
+  onSearch?: () => void;
 }
 
-export default function Header({ isLargeScreen, onOpenMenu, onLogin }: Props) {
+export default function Header({
+  isLargeScreen,
+  onOpenMenu,
+  onLogin,
+  onSearch,
+}: Props) {
+  const { showToast } = useToast();
+
   const { isDark, toggleTheme } = useTheme();
 
   const router = useRouter();
@@ -22,7 +30,12 @@ export default function Header({ isLargeScreen, onOpenMenu, onLogin }: Props) {
 
   const handleLogout = () => {
     logout();
-    Alert.alert("Success", "You have been signed out.");
+
+    showToast({
+      type: "success",
+      title: "Sessão terminada",
+      message: "Saiu da sua conta com sucesso.",
+    });
   };
 
   return (
@@ -38,19 +51,47 @@ export default function Header({ isLargeScreen, onOpenMenu, onLogin }: Props) {
         <View style={styles.headerActions}>
           {isLargeScreen ? (
             <>
-              <TouchableOpacity style={styles.navItem} onPress={() => router.push("/")}>
+              <TouchableOpacity
+                style={styles.navItem}
+                onPress={() => router.push("/")}
+              >
                 <Text style={[styles.navText, isDark && styles.navTextDark]}>
                   Home
                 </Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.navItem}>
+
+              <TouchableOpacity
+                style={styles.navItem}
+                onPress={() => {
+                  if (onSearch) {
+                    onSearch();
+                  } else {
+                    router.push({
+                      pathname: "/(tabs)",
+                      params: { focusSearch: "1" },
+                    });
+                  }
+                }}
+              >
                 <Text style={[styles.navText, isDark && styles.navTextDark]}>
                   Search
                 </Text>
               </TouchableOpacity>
-              <TouchableOpacity onPress={() => router.push("/mylist")} style={styles.navItem}>
+
+              <TouchableOpacity
+                onPress={() => router.push("/mylist")}
+                style={styles.navItem}
+              >
                 <Text style={[styles.navText, isDark && styles.navTextDark]}>
                   My List
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => router.push("/recommendations")}
+                style={styles.navItem}
+              >
+                <Text style={[styles.navText, isDark && styles.navTextDark]}>
+                  Recomendações
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity onPress={toggleTheme} style={styles.iconButton}>

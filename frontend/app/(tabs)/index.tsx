@@ -1,29 +1,37 @@
 import Header from "@/components/Header";
 import { Login } from "@/components/Login";
 import { MovieCard } from "@/components/MovieCard";
-import { MovieDetails } from "@/components/MovieDetails";
+import { MovieDetailsWrapper } from "@/components/MovieDetailsWrapper";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { SearchBar, SortOption } from "@/components/SearchBar";
 import SideMenu from "@/components/SideMenu";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/context/ThemeContext";
-import { useMovieDetails, useMovies } from "@/hooks/useMovies";
+import { useMovies } from "@/hooks/useMovies";
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
 import { Image } from "expo-image";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
 import {
   ActivityIndicator,
   Dimensions,
   FlatList,
+  Platform,
   ScrollView,
   StyleSheet,
   Text,
   TextInput,
-  TouchableOpacity,
   View,
   useWindowDimensions,
 } from "react-native";
@@ -52,26 +60,6 @@ const GENRES = [
   "Western",
 ];
 
-interface MovieDetailsWrapperProps {
-  movieID: number | null;
-  visible: boolean;
-  onClose: () => void;
-}
-
-function MovieDetailsWrapper({
-  movieID,
-  visible,
-  onClose,
-}: MovieDetailsWrapperProps) {
-  const { movie } = useMovieDetails(visible ? movieID : null);
-
-  if (!movie || !visible) {
-    return null;
-  }
-
-  return <MovieDetails movie={movie} visible={visible} onClose={onClose} />;
-}
-
 /** Header da lista (hero + search + géneros + título) */
 interface MoviesHeaderProps {
   isDark: boolean;
@@ -80,6 +68,15 @@ interface MoviesHeaderProps {
   selectedGenre: string;
   setSelectedGenre: (g: string) => void;
   filteredCount: number;
+  recommendedMovies: any[];
+  cardWidth: number;
+  gap: number;
+  onOpenMovie: (movieId: number) => void;
+  onSeeAllRecommendations: () => void;
+  isSmallScreen: boolean;
+  searchInputRef?: React.RefObject<TextInput | null>;
+  setSortOption: (opt: SortOption) => void;
+  sortOption: SortOption;
 }
 
 const MoviesHeader = ({
@@ -89,7 +86,48 @@ const MoviesHeader = ({
   selectedGenre,
   setSelectedGenre,
   filteredCount,
+  recommendedMovies,
+  cardWidth,
+  gap,
+  onOpenMovie,
+  onSeeAllRecommendations,
+  isSmallScreen,
+  searchInputRef,
+  sortOption,
+  setSortOption,
 }: MoviesHeaderProps) => {
+  const scrollRef = useRef<ScrollView | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const dragData = useRef({ startX: 0, startScrollX: 0 });
+  const [currentScrollX, setCurrentScrollX] = useState(0);
+
+  const webDragHandlers: any =
+    Platform.OS === "web"
+      ? {
+          onMouseDown: (e: any) => {
+            setIsDragging(true);
+            dragData.current.startX = e.nativeEvent.pageX;
+            dragData.current.startScrollX = currentScrollX;
+          },
+          onMouseMove: (e: any) => {
+            if (!isDragging) return;
+            const walk = e.nativeEvent.pageX - dragData.current.startX;
+            const targetX = dragData.current.startScrollX - walk;
+
+            scrollRef.current?.scrollTo({
+              x: targetX,
+              animated: false,
+            });
+          },
+          onMouseUp: () => {
+            setIsDragging(false);
+          },
+          onMouseLeave: () => {
+            setIsDragging(false);
+          },
+        }
+      : {};
+
   return (
     <>
       {/* Hero Section */}
@@ -118,58 +156,85 @@ const MoviesHeader = ({
         </View>
       </View>
 
-      {/* Search and Filters */}
-      <View style={[styles.filters, isDark && styles.filtersDark]}>
-        <View
-          style={[styles.searchContainer, isDark && styles.searchContainerDark]}
-        >
-          <Ionicons
-            name="search"
-            size={20}
-            color="#687076"
-            style={styles.searchIcon}
-          />
-          <TextInput
-            style={[styles.searchInput, isDark && styles.searchInputDark]}
-            placeholder="Search movies..."
-            placeholderTextColor="#687076"
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            underlineColorAndroid="transparent"
-            selectionColor={isDark ? "#fff" : "#000"}
-            blurOnSubmit={false}
-          />
-        </View>
+      {recommendedMovies.length > 0 && (
+        <View style={styles.recommendedSection}>
+          <View
+            style={[
+              styles.recommendedHeader,
+              isSmallScreen && styles.recommendedHeaderSmall,
+            ]}
+          >
+            <View style={styles.recommendedHeader2}>
+              <Ionicons
+                name="sparkles-outline"
+                size={30}
+                color={isDark ? "#fff" : "#000"}
+              />
+              <View style={styles.recommendedHeader3}>
+                <Text
+                  style={[
+                    styles.recommendedTitle,
+                    isDark && styles.recommendedTitleDark,
+                  ]}
+                >
+                  Recomendado para Ti
+                </Text>
+                <Text
+                  style={[
+                    styles.recommendedText,
+                    isDark && styles.recommendedTextDark,
+                  ]}
+                  numberOfLines={2}
+                  ellipsizeMode="tail"
+                >
+                  Selecionados especialmente baseado nos teus gostos
+                </Text>
+              </View>
+            </View>
 
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={styles.genreScroll}
-          contentContainerStyle={styles.genreContainer}
-        >
-          {GENRES.map((genre) => (
-            <TouchableOpacity
-              key={genre}
-              onPress={() => setSelectedGenre(genre)}
-              style={[
-                styles.genreChip,
-                selectedGenre === genre && styles.genreChipActive,
-                isDark && styles.genreChipDark,
-                selectedGenre === genre && isDark && styles.genreChipActiveDark,
-              ]}
+            <Button
+              size="default"
+              variant="outline"
+              onPress={onSeeAllRecommendations}
+              style={
+                isSmallScreen
+                  ? { alignSelf: "stretch", marginTop: 8 }
+                  : undefined
+              }
             >
-              <Text
-                style={[
-                  styles.genreText,
-                  selectedGenre === genre && styles.genreTextActive,
-                  isDark && styles.genreTextDark,
-                ]}
+              Ver Mais
+            </Button>
+          </View>
+
+          {/* como o número de filmes <= numColumns, não precisamos de ScrollView */}
+          <View style={styles.recommendedRow}>
+            {recommendedMovies.map((movie, index) => (
+              <View
+                key={movie.id}
+                style={{
+                  width: cardWidth,
+                  marginRight: index === recommendedMovies.length - 1 ? 0 : gap,
+                }}
               >
-                {genre}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
+                <MovieCard {...movie} onPress={() => onOpenMovie(movie.id)} />
+              </View>
+            ))}
+          </View>
+        </View>
+      )}
+
+      {/* Search and Filters */}
+      <View style={{ marginHorizontal: -16 }}>
+        <SearchBar
+          searchQuery={searchQuery}
+          onChangeSearch={setSearchQuery}
+          genres={GENRES}
+          selectedGenre={selectedGenre}
+          onChangeGenre={setSelectedGenre}
+          sortOption={sortOption}
+          onChangeSort={setSortOption}
+          inputRef={searchInputRef}
+        />
       </View>
 
       {/* Section header */}
@@ -199,10 +264,20 @@ export default function HomeScreen() {
   const { width } = useWindowDimensions();
   const isLargeScreen = width >= 768;
   const { user } = useAuth();
+
   const router = useRouter();
+  const { focusSearch } = useLocalSearchParams<{ focusSearch?: string }>();
 
   const { movies: backendMovies, loading, error, refetch } = useMovies();
   const [initialLoading, setInitialLoading] = useState(true);
+
+  const [selectedMovie, setSelectedMovie] = useState<number | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedGenre, setSelectedGenre] = useState("All");
+  const [showLogin, setShowLogin] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isLogin, setIsLogin] = useState(true);
+  const [sortOption, setSortOption] = useState<SortOption>("default");
 
   useFocusEffect(
     useCallback(() => {
@@ -218,10 +293,13 @@ export default function HomeScreen() {
   }, [loading]);
 
   let numColumns = 2;
+
   if (width >= 768 && width < 1024) {
     numColumns = 3;
-  } else if (width >= 1024) {
+  } else if (width >= 1024 && width < 1400) {
     numColumns = 4;
+  } else if (width >= 1400) {
+    numColumns = 5;
   }
 
   const horizontalPadding = 16;
@@ -229,12 +307,35 @@ export default function HomeScreen() {
   const cardWidth =
     (width - horizontalPadding * 2 - gap * (numColumns - 1)) / numColumns;
 
-  const [selectedMovie, setSelectedMovie] = useState<number | null>(null);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedGenre, setSelectedGenre] = useState("All");
-  const [showLogin, setShowLogin] = useState(false);
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isLogin, setIsLogin] = useState(true);
+  const isSmallScreen = width < 400;
+
+  const top10Recommended = useMemo(() => {
+    if (!backendMovies || backendMovies.length === 0) return [];
+    return backendMovies.slice(0, 10);
+  }, [backendMovies]);
+
+  const recommendedMovies = useMemo(() => {
+    if (!top10Recommended.length) return [];
+    const max = Math.min(numColumns, top10Recommended.length);
+    return top10Recommended.slice(0, max);
+  }, [top10Recommended, numColumns]);
+
+  const searchInputRef = useRef<TextInput | null>(null);
+
+  const handleSearchFocus = () => {
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        searchInputRef.current?.focus();
+      }, 120);
+    });
+  };
+
+  useEffect(() => {
+    if (focusSearch === "1" || focusSearch === "true") {
+      router.push("/")
+      handleSearchFocus();
+    }
+  }, [focusSearch]);
 
   useEffect(() => {
     if (isLargeScreen && isMenuOpen) {
@@ -245,7 +346,8 @@ export default function HomeScreen() {
   const filteredMovies = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
 
-    return backendMovies.filter((movie) => {
+    // 1) Filtrar
+    const filtered = backendMovies.filter((movie) => {
       const matchesSearch = query
         ? movie.title.toLowerCase().includes(query)
         : true;
@@ -256,7 +358,30 @@ export default function HomeScreen() {
 
       return matchesSearch && matchesGenre;
     });
-  }, [backendMovies, searchQuery, selectedGenre]);
+
+    // 2) Ordenar
+    const sorted = [...filtered];
+
+    sorted.sort((a, b) => {
+      const yearA = a.release_date ? Number(a.release_date.slice(0, 4)) : 0;
+      const yearB = b.release_date ? Number(b.release_date.slice(0, 4)) : 0;
+
+      switch (sortOption) {
+        case "rating_desc":
+          return b.rating - a.rating;
+        case "rating_asc":
+          return a.rating - b.rating;
+        case "year_desc":
+          return yearB - yearA;
+        case "year_asc":
+          return yearA - yearB;
+        default:
+          return 0;
+      }
+    });
+
+    return sorted;
+  }, [backendMovies, searchQuery, selectedGenre, sortOption]);
 
   const renderMovieItem = ({
     item,
@@ -372,6 +497,7 @@ export default function HomeScreen() {
             setIsLogin(true);
             setShowLogin(true);
           }}
+          onSearch={handleSearchFocus}
         />
 
         {/* Loading / Error / Content */}
@@ -440,6 +566,15 @@ export default function HomeScreen() {
                 selectedGenre={selectedGenre}
                 setSelectedGenre={setSelectedGenre}
                 filteredCount={filteredMovies.length}
+                recommendedMovies={recommendedMovies}
+                searchInputRef={searchInputRef}
+                cardWidth={cardWidth}
+                gap={gap}
+                onOpenMovie={(id) => setSelectedMovie(id)}
+                onSeeAllRecommendations={() => router.push("/recommendations")}
+                isSmallScreen={isSmallScreen}
+                sortOption={sortOption}
+                setSortOption={setSortOption}
               />
             }
             ListEmptyComponent={
@@ -447,7 +582,7 @@ export default function HomeScreen() {
                 <Text
                   style={[styles.emptyText, isDark && styles.emptyTextDark]}
                 >
-                  No movies found matching your criteria.
+                  Nenhum filme encontrado que corresponda aos seus critérios.
                 </Text>
               </View>
             }
@@ -480,6 +615,7 @@ export default function HomeScreen() {
             setShowLogin={setShowLogin}
             onPressProfile={() => router.push("/(tabs)/profile")}
             setIsLogin={setIsLogin}
+            onSearch={handleSearchFocus}
           />
         )}
       </SafeAreaView>
@@ -498,7 +634,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#151718",
   },
 
-  // --- NOT LOGGED (igual ao profile) ---
   notLoggedContainer: {
     flex: 1,
     justifyContent: "center",
@@ -559,82 +694,13 @@ const styles = StyleSheet.create({
   heroButton: {
     flex: 1,
   },
-  filters: {
-    backgroundColor: "#f3f3f5",
-    paddingVertical: 16,
-    marginHorizontal: -16,
-  },
-  filtersDark: {
-    backgroundColor: "#202020ff",
-  },
-  searchContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#fff",
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    marginBottom: 12,
-    height: 44,
-    marginHorizontal: 16,
-  },
-  searchContainerDark: {
-    backgroundColor: "#2a2a2a",
-  },
-  searchIcon: {
-    marginRight: 8,
-  },
-  searchInput: {
-    flex: 1,
-    fontSize: 16,
-    color: "#11181C",
-    padding: 0,
-  },
-  searchInputDark: {
-    color: "#fff",
-  },
-  genreScroll: {
-    marginTop: 8,
-    paddingLeft: 16,
-  },
-  genreContainer: {
-    paddingRight: 16,
-  },
-  genreChip: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    backgroundColor: "#fff",
-    marginRight: 8,
-  },
-  genreChipDark: {
-    backgroundColor: "#2a2a2a",
-  },
-  genreChipActive: {
-    backgroundColor: "#030213",
-  },
-  genreChipActiveDark: {
-    backgroundColor: "#030213",
-  },
-  genreText: {
-    fontSize: 14,
-    color: "#11181C",
-    fontWeight: "500",
-  },
-  genreTextDark: {
-    color: "#fff",
-  },
-  genreTextActive: {
-    color: "#fff",
-  },
   moviesSection: {
     paddingVertical: 16,
     paddingHorizontal: 16,
   },
-  sectionHeader: {
-    marginBottom: 16,
-  },
+  sectionHeader: {},
   sectionTitle: {
-    fontSize: 24,
+    fontSize: 18,
     fontWeight: "bold",
     marginBottom: 4,
     color: "#11181C",
@@ -662,6 +728,58 @@ const styles = StyleSheet.create({
     color: "#687076",
   },
   emptyTextDark: {
+    color: "#9BA1A6",
+  },
+  recommendedSection: {
+    marginHorizontal: -16,
+    paddingTop: 16,
+    paddingBottom: 8,
+  },
+  recommendedHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    marginBottom: 20,
+    gap: 20,
+  },
+  recommendedHeaderSmall: {
+    flexDirection: "column",
+    alignItems: "flex-start",
+  },
+  recommendedHeader2: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    flex: 1,
+  },
+  recommendedHeader3: {
+    flexDirection: "column",
+    flexShrink: 1,
+  },
+  recommendedList: {
+    paddingHorizontal: 16,
+    paddingVertical: 4,
+    paddingRight: 16,
+  },
+  recommendedRow: {
+    flexDirection: "row",
+    paddingHorizontal: 16,
+  },
+  recommendedTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginBottom: 4,
+    color: "#11181C",
+  },
+  recommendedTitleDark: {
+    color: "#fff",
+  },
+  recommendedText: {
+    fontSize: 14,
+    color: "#687076",
+  },
+  recommendedTextDark: {
     color: "#9BA1A6",
   },
 });

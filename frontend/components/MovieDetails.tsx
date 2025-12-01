@@ -133,6 +133,16 @@ export function MovieDetails({
   const otherReviews =
     movie.reviews?.filter((rev: any) => rev.username !== user?.username) || [];
 
+  const formatReviewDate = (iso: string | undefined) => {
+    if (!iso) return "";
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return "";
+    const day = String(d.getDate()).padStart(2, "0");
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const year = d.getFullYear();
+    return `${day}/${month}/${year}`;
+  };
+
   return (
     <Modal
       visible={visible}
@@ -399,6 +409,9 @@ export function MovieDetails({
                 {otherReviews.length > 0 ? (
                   otherReviews.map((rev: any, index: number) => {
                     const showDivider = index !== otherReviews.length - 1;
+                    const formattedDate = formatReviewDate(rev.created_at);
+                    const firstLetter =
+                      (rev.username && rev.username[0]?.toUpperCase()) || "?";
 
                     return (
                       <View
@@ -409,38 +422,89 @@ export function MovieDetails({
                           showDivider && { borderBottomColor: textSecondary },
                         ]}
                       >
-                        {/* Linha com username + rating com estrela */}
-                        <View style={styles.reviewRatingRow}>
-                          <Text
-                            style={[styles.sectionText, { color: textPrimary }]}
+                        <View style={styles.reviewVerticalContainer}>
+                          {/* AVATAR */}
+                          <View
+                            style={[
+                              styles.reviewAvatar,
+                              {
+                                backgroundColor: isDark ? "#111827" : "#E5E7EB",
+                              },
+                            ]}
                           >
-                            Username: {rev.username}
+                            <Text
+                              style={[
+                                styles.reviewAvatarText,
+                                { color: isDark ? "#F9FAFB" : "#111827" },
+                              ]}
+                            >
+                              {firstLetter}
+                            </Text>
+                          </View>
+
+                          {/* USERNAME */}
+                          <Text
+                            style={[
+                              styles.reviewUsername,
+                              {
+                                color: textPrimary,
+                                textAlign: "center",
+                                marginTop: 4,
+                              },
+                            ]}
+                          >
+                            {rev.username}
                           </Text>
 
-                          <View style={styles.reviewRatingValue}>
+                          {/* COMMENT (opcional) */}
+                          {rev.description ? (
+                            <Text
+                              style={[
+                                styles.reviewCommentText,
+                                {
+                                  color: textSecondary,
+                                  textAlign: "center",
+                                  marginTop: 4,
+                                },
+                              ]}
+                            >
+                              {rev.description}
+                            </Text>
+                          ) : null}
+
+                          {/* DATE */}
+                          {formattedDate ? (
+                            <Text
+                              style={[
+                                styles.reviewDate,
+                                {
+                                  color: textSecondary,
+                                  textAlign: "center",
+                                  marginTop: 6,
+                                },
+                              ]}
+                            >
+                              {formattedDate}
+                            </Text>
+                          ) : null}
+
+                          {/* RATING */}
+                          <View style={styles.reviewRatingCentered}>
                             <Ionicons name="star" size={14} color="#FFD700" />
                             <Text
                               style={[
                                 styles.sectionText,
-                                { color: textPrimary, marginLeft: 4 },
+                                {
+                                  color: textPrimary,
+                                  marginLeft: 4,
+                                  fontWeight: "600",
+                                },
                               ]}
                             >
-                              Rating: {rev.rating}/10
+                              {rev.rating}/10
                             </Text>
                           </View>
                         </View>
-
-                        {/* Descrição só aparece se existir */}
-                        {rev.description ? (
-                          <Text
-                            style={[
-                              styles.sectionText,
-                              { color: textSecondary, marginTop: 2 },
-                            ]}
-                          >
-                            Descrição: {rev.description}
-                          </Text>
-                        ) : null}
                       </View>
                     );
                   })
@@ -575,5 +639,63 @@ const styles = StyleSheet.create({
   reviewRatingValue: {
     flexDirection: "row",
     alignItems: "center",
+  },
+  reviewHeaderRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 8,
+  },
+  reviewAvatar: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 8,
+  },
+  reviewAvatarText: {
+    fontSize: 14,
+    fontWeight: "600",
+  },
+  reviewHeaderContent: {
+    flex: 1,
+  },
+  reviewTopRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  reviewTopRow2: {
+    flexDirection: "row-reverse",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  reviewUsername: {
+    fontSize: 14,
+    fontWeight: "600",
+  },
+  reviewRatingInline: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  reviewDate: {
+    fontSize: 12,
+    marginTop: 2,
+  },
+  reviewCommentText: {
+    fontSize: 14,
+    lineHeight: 20,
+    marginTop: 6,
+  },
+  reviewVerticalContainer: {
+    alignItems: "center",
+    paddingVertical: 8,
+  },
+
+  reviewRatingCentered: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 4,
   },
 });

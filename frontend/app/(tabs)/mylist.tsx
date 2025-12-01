@@ -1,18 +1,20 @@
 import Header from "@/components/Header";
 import { Login } from "@/components/Login";
 import { MovieCard } from "@/components/MovieCard";
-import { MovieDetails } from "@/components/MovieDetails";
+import { MovieDetailsWrapper } from "@/components/MovieDetailsWrapper";
+import { SearchBar, SortOption } from "@/components/SearchBar";
 import SideMenu from "@/components/SideMenu";
 import { Button } from "@/components/ui/button";
 import { API_ENDPOINTS } from "@/constants/api";
 import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/context/ThemeContext";
+import { useMovies } from "@/hooks/useMovies";
 import type { Movie } from "@/types/movie";
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   ScrollView,
@@ -37,6 +39,7 @@ export default function MyList() {
   const isLargeScreen = width >= 768;
   const router = useRouter();
   const { user, accessToken } = useAuth();
+  const { movies: catalogMovies } = useMovies();
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [authVisible, setAuthVisible] = useState(false);
@@ -48,10 +51,14 @@ export default function MyList() {
   const [reviews, setReviews] = useState<UserReview[]>([]);
   const [ratedMovies, setRatedMovies] = useState<Movie[]>([]);
 
-  const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
+  const [selectedMovieId, setSelectedMovieId] = useState<number | null>(null);
   const [detailsVisible, setDetailsVisible] = useState(false);
 
-  const bgScreen = isDark ? "#151718" : "#F3F4F6";
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedGenre, setSelectedGenre] = useState<string>("All");
+  const [sortOption, setSortOption] = useState<SortOption>("default");
+
+  const bgScreen = isDark ? "#151718" : "#f3f3f5";
   const cardBg = isDark ? "#151718" : "#FFFFFF";
   const cardBorder = isDark ? "#2b2c2e" : "#E5E7EB";
   const textMain = isDark ? "#f9fafb" : "#020617";
@@ -61,8 +68,10 @@ export default function MyList() {
   let numColumns = 2;
   if (width >= 768 && width < 1024) {
     numColumns = 3;
-  } else if (width >= 1024) {
+  } else if (width >= 1024 && width < 1400) {
     numColumns = 4;
+  } else if (width >= 1400) {
+    numColumns = 5;
   }
 
   const horizontalPadding = 16;
@@ -97,7 +106,6 @@ export default function MyList() {
       const revs: UserReview[] = data.reviews || [];
       setReviews(revs);
 
-      // filmes distintos avaliados (movie vem no serializer)
       const moviesMap = new Map<number, Movie>();
       revs.forEach((rev) => {
         if (rev.movie) {
@@ -128,25 +136,12 @@ export default function MyList() {
   );
 
   const handleOpenDetails = (movieId: number) => {
-    const baseMovie = ratedMovies.find((m) => m.id === movieId);
-    if (!baseMovie) return;
-
-    // enriquecer com o rating do user (se quiseres)
-    const userReview = reviews.find((r) => r.movie?.id === movieId);
-    const enriched: Movie = userReview
-      ? ({
-          ...baseMovie,
-          user_rating: userReview.rating,
-          user_description: userReview.description ?? "",
-        } as Movie)
-      : baseMovie;
-
-    setSelectedMovie(enriched);
+    setSelectedMovieId(movieId);
     setDetailsVisible(true);
   };
 
   const handleCloseDetails = () => {
-    setSelectedMovie(null);
+    setSelectedMovieId(null);
     setDetailsVisible(false);
   };
 
@@ -156,7 +151,7 @@ export default function MyList() {
     newTotal: number,
     userRating: number
   ) => {
-    // atualizar grelha
+    // atualizar apenas a grelha da MyList
     setRatedMovies((current) =>
       current.map((m) =>
         m.id === movieId
@@ -169,21 +164,56 @@ export default function MyList() {
           : m
       )
     );
-
-    // atualizar selectedMovie
-    setSelectedMovie((current) =>
-      current && current.id === movieId
-        ? {
-            ...current,
-            rating: newAverage ?? current.rating,
-            total_ratings: newTotal ?? current.total_ratings,
-            user_rating: userRating,
-          }
-        : current
-    );
   };
 
-  // 🔒 Não autenticado
+  const allGenres = useMemo(() => {
+    const set = new Set<string>();
+
+    ratedMovies.forEach((movie) => {
+      movie.genres?.forEach((g) => set.add(g.gerne_name));
+    });
+
+    return ["All", ...Array.from(set).sort()];
+  }, [ratedMovies]);
+
+  const filteredRatedMovies = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+
+    const filtered = ratedMovies.filter((movie) => {
+      const matchesSearch = query
+        ? movie.title.toLowerCase().includes(query) ||
+          movie.directors?.some((d) => d.name.toLowerCase().includes(query))
+        : true;
+
+      const matchesGenre =
+        selectedGenre === "All" ||
+        movie.genres?.some((g) => g.gerne_name === selectedGenre);
+
+      return matchesSearch && matchesGenre;
+    });
+
+    const sorted = [...filtered];
+    sorted.sort((a, b) => {
+      const yearA = new Date(a.release_date).getFullYear() || 0;
+      const yearB = new Date(b.release_date).getFullYear() || 0;
+
+      switch (sortOption) {
+        case "rating_desc":
+          return b.rating - a.rating;
+        case "rating_asc":
+          return a.rating - b.rating;
+        case "year_desc":
+          return yearB - yearA;
+        case "year_asc":
+          return yearA - yearB;
+        default:
+          return 0;
+      }
+    });
+
+    return sorted;
+  }, [ratedMovies, searchQuery, selectedGenre, sortOption]);
+
   if (!user) {
     return (
       <SafeAreaView
@@ -195,6 +225,12 @@ export default function MyList() {
           isLargeScreen={isLargeScreen}
           onOpenMenu={() => setIsMenuOpen(true)}
           onLogin={() => setAuthVisible(true)}
+          onSearch={() =>
+            router.push({
+              pathname: "/",
+              params: { focusSearch: "1" },
+            })
+          }
         />
 
         <View style={styles.notLoggedContainer}>
@@ -252,6 +288,12 @@ export default function MyList() {
             setShowLogin={setAuthVisible}
             onPressProfile={() => router.push("/(tabs)/profile")}
             setIsLogin={setModalIsLogin}
+            onSearch={() =>
+              router.push({
+                pathname: "/",
+                params: { focusSearch: "1" },
+              })
+            }
           />
         )}
       </SafeAreaView>
@@ -268,6 +310,12 @@ export default function MyList() {
         isLargeScreen={isLargeScreen}
         onOpenMenu={() => setIsMenuOpen(true)}
         onLogin={() => setAuthVisible(true)}
+        onSearch={() =>
+          router.push({
+            pathname: "/",
+            params: { focusSearch: "1" },
+          })
+        }
       />
 
       {error && (
@@ -317,6 +365,18 @@ export default function MyList() {
           contentContainerStyle={{ paddingBottom: 16 }}
           showsVerticalScrollIndicator={false}
         >
+          {/* 🔍 Search + Géneros reutilizados */}
+          <SearchBar
+            searchQuery={searchQuery}
+            onChangeSearch={setSearchQuery}
+            genres={allGenres}
+            selectedGenre={selectedGenre}
+            onChangeGenre={setSelectedGenre}
+            sortOption={sortOption}
+            onChangeSort={setSortOption}
+            placeholder="Pesquisar por título ou realizador..."
+          />
+
           <View
             style={[styles.moviesSection, { backgroundColor: "transparent" }]}
           >
@@ -332,34 +392,43 @@ export default function MyList() {
                   isDark && styles.sectionSubtitleDark,
                 ]}
               >
-                {ratedMovies.length}{" "}
-                {ratedMovies.length === 1 ? "filme" : "filmes"}
+                {filteredRatedMovies.length}{" "}
+                {filteredRatedMovies.length === 1 ? "filme" : "filmes"}
               </Text>
             </View>
 
             <View style={styles.moviesGrid}>
-              {ratedMovies.map((movie, index) => (
-                <View
-                  key={movie.id}
-                  style={{
-                    width: cardWidth,
-                    marginRight: (index + 1) % numColumns === 0 ? 0 : gap,
-                    marginBottom: 16,
-                  }}
-                >
-                  <MovieCard
-                    {...movie}
-                    onPress={() => handleOpenDetails(movie.id)}
-                  />
+              {filteredRatedMovies.length === 0 ? (
+                <View style={styles.emptyState}>
+                  <Text
+                    style={[styles.emptyText, isDark && styles.emptyTextDark]}
+                  >
+                    Nenhum filme encontrado que corresponda aos seus critérios.
+                  </Text>
                 </View>
-              ))}
+              ) : (
+                filteredRatedMovies.map((movie, index) => (
+                  <View
+                    key={movie.id}
+                    style={{
+                      width: cardWidth,
+                      marginRight: (index + 1) % numColumns === 0 ? 0 : gap,
+                      marginBottom: 16,
+                    }}
+                  >
+                    <MovieCard
+                      {...movie}
+                      onPress={() => handleOpenDetails(movie.id)}
+                    />
+                  </View>
+                ))
+              )}
             </View>
           </View>
         </ScrollView>
       )}
-
-      <MovieDetails
-        movie={selectedMovie}
+      <MovieDetailsWrapper
+        movieID={selectedMovieId}
         visible={detailsVisible}
         onClose={handleCloseDetails}
         onRated={handleMovieRated}
@@ -438,7 +507,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   sectionTitle: {
-    fontSize: 24,
+    fontSize: 18,
     fontWeight: "bold",
     marginBottom: 4,
     color: "#11181C",
@@ -456,5 +525,39 @@ const styles = StyleSheet.create({
   moviesGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
+    justifyContent: "center",
+  },
+  searchContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#fff",
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    marginTop: 16,
+    marginBottom: 8,
+    height: 44,
+    marginHorizontal: 16,
+  },
+  searchContainerDark: {
+    backgroundColor: "#2a2a2a",
+  },
+  searchIcon: {
+    marginRight: 8,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 16,
+    color: "#11181C",
+    padding: 0,
+  },
+  searchInputDark: {
+    color: "#fff",
+  },
+  emptyState: {
+    paddingVertical: 48,
+    alignItems: "center",
+  },
+  emptyTextDark: {
+    color: "#9BA1A6",
   },
 });

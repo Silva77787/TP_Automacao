@@ -1,10 +1,10 @@
 import { API_ENDPOINTS } from "@/constants/api";
 import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/context/ThemeContext";
+import { useToast } from "@/context/ToastContext";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
 import {
-  Alert,
   Modal,
   Pressable,
   ScrollView,
@@ -25,6 +25,8 @@ interface LoginProps {
 }
 
 export function Login({ visible, onClose, isLogin, setIsLogin }: LoginProps) {
+  const { showToast } = useToast();
+
   const { setUser, setTokens } = useAuth();
   const { isDark } = useTheme();
 
@@ -47,7 +49,11 @@ export function Login({ visible, onClose, isLogin, setIsLogin }: LoginProps) {
     if (isLogin) {
       // ========== LOGIN ==========
       if (!email || !password) {
-        Alert.alert("Error", "Please fill in all fields");
+        showToast({
+          type: "error",
+          title: "Campos em falta",
+          message: "Por favor preencha email e password.",
+        });
         return;
       }
 
@@ -57,50 +63,65 @@ export function Login({ visible, onClose, isLogin, setIsLogin }: LoginProps) {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            email, // Can be username OR email
+            email, // pode ser username OU email
             password,
           }),
         });
 
         const data = await response.json();
-
         console.log("🔐 Login response:", data);
 
         if (response.ok) {
-          console.log("✅ Login successful, saving tokens...");
+          console.log("✅ Login successful, saving tokens.");
 
-          //Save tokens FIRST
           await setTokens(data.access, data.refresh);
-          console.log("✅ Tokens saved to AsyncStorage");
-
-          //Store user info
           await setUser({
             username: data.username,
             email: data.email,
           });
-          console.log("✅ User saved to context");
 
-          Alert.alert("Success", "Login successful!");
-          onClose();
-          setEmail("");
-          setPassword("");
+          showToast({
+            type: "success",
+            title: "Sessão iniciada",
+            message: "Login efetuado com sucesso.",
+          });
+
+          setTimeout(() => {
+            onClose();
+            setEmail("");
+            setPassword("");
+          }, 500);
+
         } else {
-          // Handle backend error response
           const errorMessage =
             data.errors?.error?.[0] || data.error || "Login failed";
+
           console.error("❌ Login error:", errorMessage);
-          Alert.alert("Error", errorMessage);
+
+          showToast({
+            type: "error",
+            title: "Erro ao entrar",
+            message: errorMessage,
+          });
         }
       } catch (error: any) {
         console.error("❌ Login network error:", error);
-        Alert.alert("Error", "Network error. Try again later.");
+        showToast({
+          type: "error",
+          title: "Erro de rede",
+          message: "Não foi possível ligar ao servidor. Tente novamente.",
+        });
       } finally {
         setLoading(false);
       }
     } else {
       // ========== REGISTER ==========
       if (!name || !email || !password) {
-        Alert.alert("Error", "Please fill in all fields");
+        showToast({
+          type: "error",
+          title: "Campos em falta",
+          message: "Preencha todos os campos para criar a conta.",
+        });
         return;
       }
 
@@ -120,10 +141,12 @@ export function Login({ visible, onClose, isLogin, setIsLogin }: LoginProps) {
         const data = await response.json();
 
         if (response.ok) {
-          Alert.alert(
-            "Success",
-            "Account created successfully. You may now log in."
-          );
+          showToast({
+            type: "success",
+            title: "Conta criada",
+            message: "Conta criada com sucesso. Já pode iniciar sessão.",
+          });
+
           setIsLogin(true);
           setName("");
           setEmail("");
@@ -135,11 +158,20 @@ export function Login({ visible, onClose, isLogin, setIsLogin }: LoginProps) {
               .join(", ") ||
             data.message ||
             "Registration failed";
-          Alert.alert("Error", errorMessage);
+
+          showToast({
+            type: "error",
+            title: "Erro no registo",
+            message: errorMessage,
+          });
         }
       } catch (error: any) {
         console.error("❌ Registration error:", error);
-        Alert.alert("Error", "Network error. Try again later.");
+        showToast({
+          type: "error",
+          title: "Erro de rede",
+          message: "Não foi possível criar a conta. Tente novamente.",
+        });
       } finally {
         setLoading(false);
       }

@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { API_ENDPOINTS } from "@/constants/api";
 import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/context/ThemeContext";
+import { useToast } from "@/context/ToastContext";
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
 import { useRouter } from "expo-router";
@@ -14,18 +15,18 @@ import { StatusBar } from "expo-status-bar";
 import React, { useCallback, useState } from "react";
 import {
   ActivityIndicator,
-  Alert,
-  Image,
   ScrollView,
   StyleSheet,
   Text,
-  TouchableOpacity,
   useWindowDimensions,
   View,
 } from "react-native";
+
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function Profile() {
+  const { showToast } = useToast();
+
   const { isDark } = useTheme();
   const { width } = useWindowDimensions();
   const isLargeScreen = width >= 768;
@@ -78,15 +79,21 @@ export default function Profile() {
 
   const handleSave = async () => {
     if (!user || !accessToken) return;
+
     const trimmedOldPassword = oldPassword.trim();
     const trimmedEmail = editEmail.trim();
     const trimmedNewPassword = newPassword.trim();
     const trimmedNewPasswordConfirm = newPasswordConfirm.trim();
 
     if (!trimmedOldPassword) {
-      Alert.alert("Erro", "Introduza a password atual para guardar alterações.");
+      showToast({
+        type: "error",
+        title: "Erro",
+        message: "Introduza a password atual para guardar alterações.",
+      });
       return;
     }
+
     const body: {
       email?: string;
       old_password: string;
@@ -95,18 +102,26 @@ export default function Profile() {
     } = {
       old_password: trimmedOldPassword,
     };
+
     if (trimmedEmail && trimmedEmail !== email) {
       body.email = trimmedEmail;
     }
+
     if (trimmedNewPassword || trimmedNewPasswordConfirm) {
-      if (!trimmedNewPassword || !trimmedNewPasswordConfirm){
-        Alert.alert("Erro", "Para alterar a password preencha os dois campos da nova password");
+      if (!trimmedNewPassword || !trimmedNewPasswordConfirm) {
+        showToast({
+          type: "error",
+          title: "Erro",
+          message:
+            "Para alterar a password preencha os dois campos da nova password.",
+        });
         return;
       }
       body.password = trimmedNewPassword;
       body.password_confirm = trimmedNewPasswordConfirm;
     }
 
+    // nada para alterar → sai do modo edição sem toast
     if (!body.email && !body.password) {
       setIsEditing(false);
       return;
@@ -127,8 +142,18 @@ export default function Profile() {
       console.log("UPDATE_USER status:", res.status, data);
 
       if (!res.ok || data.success === false) {
-        const msg =data.errors?.old_password?.[0] ||data.errors?.email?.[0] ||data.errors?.password?.[0] ||data.error || "Falha ao atualizar utilizador.";
-        Alert.alert("Erro", msg);
+        const msg =
+          data.errors?.old_password?.[0] ||
+          data.errors?.email?.[0] ||
+          data.errors?.password?.[0] ||
+          data.error ||
+          "Falha ao atualizar utilizador.";
+
+        showToast({
+          type: "error",
+          title: "Erro ao atualizar",
+          message: msg,
+        });
         return;
       }
 
@@ -136,14 +161,24 @@ export default function Profile() {
         setEmail(data.user.email);
         setEditEmail(data.user.email);
       }
+
       setOldPassword("");
       setNewPassword("");
       setNewPasswordConfirm("");
       setIsEditing(false);
-      Alert.alert("Sucesso", "Dados atualizados com sucesso.");
+
+      showToast({
+        type: "success",
+        title: "Sucesso",
+        message: "Dados atualizados com sucesso.",
+      });
     } catch (err) {
       console.log("Erro update_user:", err);
-      Alert.alert("Erro", "Erro de rede ao atualizar utilizador.");
+      showToast({
+        type: "error",
+        title: "Erro de rede",
+        message: "Erro de rede ao atualizar utilizador.",
+      });
     } finally {
       setSaving(false);
     }
@@ -280,6 +315,12 @@ export default function Profile() {
           isLargeScreen={isLargeScreen}
           onOpenMenu={() => setIsMenuOpen(true)}
           onLogin={() => setAuthVisible(true)}
+          onSearch={() =>
+            router.push({
+              pathname: "/",
+              params: { focusSearch: "1" },
+            })
+          }
         />
 
         <View style={styles.notLoggedContainer}>
@@ -339,6 +380,7 @@ export default function Profile() {
             setShowLogin={setAuthVisible}
             onPressProfile={() => router.push("/(tabs)/profile")}
             setIsLogin={setModalIsLogin}
+            onSearch={undefined}
           />
         )}
       </SafeAreaView>
@@ -355,6 +397,12 @@ export default function Profile() {
         isLargeScreen={isLargeScreen}
         onOpenMenu={() => setIsMenuOpen(true)}
         onLogin={() => setAuthVisible(true)}
+        onSearch={() =>
+          router.push({
+            pathname: "/",
+            params: { focusSearch: "1" },
+          })
+        }
       />
 
       {loading && (
@@ -387,14 +435,18 @@ export default function Profile() {
           ]}
         >
           <View style={styles.profileRow}>
-            <View style={styles.avatarWrapper}>
-              <Image
-                source={require("@/assets/images/perfil.jpg")}
-                style={styles.avatar}
-              />
-              <TouchableOpacity style={styles.cameraButton}>
-                <Ionicons name="camera" size={16} color="#fff" />
-              </TouchableOpacity>
+            {/* AVATAR DO UTILIZADOR */}
+            <View
+              style={[styles.profileAvatar, isDark && styles.profileAvatarDark]}
+            >
+              <Text
+                style={[
+                  styles.profileAvatarText,
+                  isDark && styles.profileAvatarTextDark,
+                ]}
+              >
+                {user?.username?.[0]?.toUpperCase() || "?"}
+              </Text>
             </View>
 
             <View style={styles.profileInfo}>
@@ -499,8 +551,13 @@ export default function Profile() {
                   <Text style={[styles.infoLabel, { color: textMuted }]}>
                     Password atual
                   </Text>
-                  <Input placeholder = "Introduza a sua password atual" value={oldPassword} onChangeText={setOldPassword} secureTextEntry autoCapitalize="none" 
-                />
+                  <Input
+                    placeholder="Introduza a sua password atual"
+                    value={oldPassword}
+                    onChangeText={setOldPassword}
+                    secureTextEntry
+                    autoCapitalize="none"
+                  />
                 </>
               ) : (
                 <>
@@ -520,11 +577,25 @@ export default function Profile() {
                 <Text style={[styles.infoLabel, { color: textMuted }]}>
                   Nova password
                 </Text>
-                <Input placeholder="Deiexe em branco se não quiser alterar" value={newPassword} onChangeText={setNewPassword} secureTextEntry autoCapitalize="none" />
-                <Text style={[styles.infoLabel,{color: textMuted,marginTop:8},]}>
+                <Input
+                  placeholder="Deiexe em branco se não quiser alterar"
+                  value={newPassword}
+                  onChangeText={setNewPassword}
+                  secureTextEntry
+                  autoCapitalize="none"
+                />
+                <Text
+                  style={[styles.infoLabel, { color: textMuted, marginTop: 8 }]}
+                >
                   Confirmar nova password
                 </Text>
-                <Input placeholder="Repita a nova password" value={newPasswordConfirm} onChangeText={setNewPasswordConfirm} secureTextEntry autoCapitalize="none"/>
+                <Input
+                  placeholder="Repita a nova password"
+                  value={newPasswordConfirm}
+                  onChangeText={setNewPasswordConfirm}
+                  secureTextEntry
+                  autoCapitalize="none"
+                />
               </View>
             )}
 
@@ -595,49 +666,6 @@ export default function Profile() {
             )}
           </View>
         </View>
-
-        {/* Estatísticas
-        <View
-          style={[
-            styles.statsCard,
-            styles.box,
-            { backgroundColor: cardBg, borderColor: cardBorder },
-          ]}
-        >
-          <Text style={[styles.cardTitle, { color: textMain }]}>
-            Estatísticas
-          </Text>
-          <Text style={[styles.cardSubtitle, { color: textMuted }]}>
-            Sua atividade no CineHub
-          </Text>
-
-          <View style={styles.statsRow}>
-            <View style={styles.statsItem}>
-              <Text style={[styles.statsValue, { color: statValue }]}>24</Text>
-              <Text style={[styles.statsLabel, { color: statLabel }]}>
-                Filmes assistidos
-              </Text>
-            </View>
-            <View style={styles.statsItem}>
-              <Text style={[styles.statsValue, { color: statValue }]}>3</Text>
-              <Text style={[styles.statsLabel, { color: statLabel }]}>
-                Favoritos
-              </Text>
-            </View>
-            <View style={styles.statsItem}>
-              <Text style={[styles.statsValue, { color: statValue }]}>4.2</Text>
-              <Text style={[styles.statsLabel, { color: statLabel }]}>
-                Avaliação média
-              </Text>
-            </View>
-            <View style={styles.statsItem}>
-              <Text style={[styles.statsValue, { color: statValue }]}>36h</Text>
-              <Text style={[styles.statsLabel, { color: statLabel }]}>
-                Tempo assistindo
-              </Text>
-            </View>
-          </View>
-        </View> */}
       </ScrollView>
 
       {!isLargeScreen && (
@@ -647,6 +675,7 @@ export default function Profile() {
           setShowLogin={setAuthVisible}
           onPressProfile={() => router.push("/(tabs)/profile")}
           setIsLogin={setModalIsLogin}
+          onSearch={undefined}
         />
       )}
     </SafeAreaView>
@@ -728,6 +757,27 @@ const styles = StyleSheet.create({
   },
 
   // Profile card
+  profileAvatar: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#E5E7EB", // Light
+    marginBottom: 12,
+  },
+  profileAvatarDark: {
+    backgroundColor: "#111827",
+  },
+  profileAvatarText: {
+    fontSize: 32,
+    fontWeight: "700",
+    color: "#111827",
+  },
+  profileAvatarTextDark: {
+    color: "#F9FAFB",
+  },
+
   profileCard: {
     borderRadius: 16,
     padding: 16,
@@ -737,24 +787,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 16,
-  },
-  avatarWrapper: {
-    position: "relative",
-  },
-  avatar: {
-    width: 90,
-    height: 90,
-    borderRadius: 999,
-  },
-  cameraButton: {
-    position: "absolute",
-    bottom: 0,
-    right: 0,
-    backgroundColor: "#151718",
-    borderRadius: 999,
-    padding: 6,
-    borderWidth: 1,
-    borderColor: "#1f2937",
   },
   profileInfo: {
     flex: 1,
