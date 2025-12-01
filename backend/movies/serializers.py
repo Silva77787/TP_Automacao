@@ -55,8 +55,8 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 class UserDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = PlataformaUser
-        fields = ['username', 'email']
-        read_only_fields = ['username']
+        fields = ['username', 'email', 'joined_date']
+        read_only_fields = ['username', 'joined_date']
 
 
 class UserUpdateSerializer(serializers.ModelSerializer):
