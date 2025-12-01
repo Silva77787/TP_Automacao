@@ -57,7 +57,7 @@ export function Login({ visible, onClose, isLogin, setIsLogin }: LoginProps) {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            identifier: email, // Can be username OR email
+            email, // Can be username OR email
             password,
           }),
         });
@@ -222,7 +222,7 @@ export function Login({ visible, onClose, isLogin, setIsLogin }: LoginProps) {
 
               <View style={styles.inputContainer}>
                 <Text style={[styles.label, { color: textPrimary }]}>
-                  Username or Email
+                  Email
                 </Text>
                 <Input
                   placeholder="seu@email.com"

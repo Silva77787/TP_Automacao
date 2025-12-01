@@ -39,6 +39,9 @@ export default function Profile() {
 
   const [isEditing, setIsEditing] = useState(false);
   const [editEmail, setEditEmail] = useState("");
+  const [oldPassword, setOldPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [newPasswordConfirm, setNewPasswordConfirm] = useState("");
   const [editPassword, setEditPassword] = useState("");
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -75,16 +78,33 @@ export default function Profile() {
 
   const handleSave = async () => {
     if (!user || !accessToken) return;
-
-    const body: { email?: string; password?: string } = {};
+    const trimmedOldPassword = oldPassword.trim();
     const trimmedEmail = editEmail.trim();
-    const trimmedPassword = editPassword.trim();
+    const trimmedNewPassword = newPassword.trim();
+    const trimmedNewPasswordConfirm = newPasswordConfirm.trim();
 
+    if (!trimmedOldPassword) {
+      Alert.alert("Erro", "Introduza a password atual para guardar alterações.");
+      return;
+    }
+    const body: {
+      email?: string;
+      old_password: string;
+      password?: string;
+      password_confirm?: string;
+    } = {
+      old_password: trimmedOldPassword,
+    };
     if (trimmedEmail && trimmedEmail !== email) {
       body.email = trimmedEmail;
     }
-    if (trimmedPassword) {
-      body.password = trimmedPassword;
+    if (trimmedNewPassword || trimmedNewPasswordConfirm) {
+      if (!trimmedNewPassword || !trimmedNewPasswordConfirm){
+        Alert.alert("Erro", "Para alterar a password preencha os dois campos da nova password");
+        return;
+      }
+      body.password = trimmedNewPassword;
+      body.password_confirm = trimmedNewPasswordConfirm;
     }
 
     if (!body.email && !body.password) {
@@ -107,7 +127,8 @@ export default function Profile() {
       console.log("UPDATE_USER status:", res.status, data);
 
       if (!res.ok || data.success === false) {
-        Alert.alert("Erro", data.error || "Falha ao atualizar utilizador.");
+        const msg =data.errors?.old_password?.[0] ||data.errors?.email?.[0] ||data.errors?.password?.[0] ||data.error || "Falha ao atualizar utilizador.";
+        Alert.alert("Erro", msg);
         return;
       }
 
@@ -115,8 +136,9 @@ export default function Profile() {
         setEmail(data.user.email);
         setEditEmail(data.user.email);
       }
-
-      setEditPassword("");
+      setOldPassword("");
+      setNewPassword("");
+      setNewPasswordConfirm("");
       setIsEditing(false);
       Alert.alert("Sucesso", "Dados atualizados com sucesso.");
     } catch (err) {
@@ -130,7 +152,9 @@ export default function Profile() {
   const handleCancel = () => {
     setIsEditing(false);
     setEditEmail(email ?? "");
-    setEditPassword("");
+    setOldPassword("");
+    setNewPassword("");
+    setNewPasswordConfirm("");
   };
 
   const fetchUserData = useCallback(async () => {
@@ -468,20 +492,15 @@ export default function Profile() {
               )}
             </View>
 
-            {/* Password */}
+            {/* Password atual (obrigatória para qualquer alteração) */}
             <View style={styles.infoBlock}>
               {isEditing ? (
                 <>
                   <Text style={[styles.infoLabel, { color: textMuted }]}>
-                    Nova Password
+                    Password atual
                   </Text>
-                  <Input
-                    placeholder="Deixe em branco para não alterar"
-                    value={editPassword}
-                    onChangeText={setEditPassword}
-                    secureTextEntry
-                    autoCapitalize="none"
-                  />
+                  <Input placeholder = "Introduza a sua password atual" value={oldPassword} onChangeText={setOldPassword} secureTextEntry autoCapitalize="none" 
+                />
                 </>
               ) : (
                 <>
@@ -489,11 +508,25 @@ export default function Profile() {
                     Password
                   </Text>
                   <Text style={[styles.infoValue, { color: textMain }]}>
-                    ********
+                    **********
                   </Text>
                 </>
               )}
             </View>
+
+            {/* Nova password + confirmação */}
+            {isEditing && (
+              <View style={styles.infoBlock}>
+                <Text style={[styles.infoLabel, { color: textMuted }]}>
+                  Nova password
+                </Text>
+                <Input placeholder="Deiexe em branco se não quiser alterar" value={newPassword} onChangeText={setNewPassword} secureTextEntry autoCapitalize="none" />
+                <Text style={[styles.infoLabel,{color: textMuted,marginTop:8},]}>
+                  Confirmar nova password
+                </Text>
+                <Input placeholder="Repita a nova password" value={newPasswordConfirm} onChangeText={setNewPasswordConfirm} secureTextEntry autoCapitalize="none"/>
+              </View>
+            )}
 
             {/* Botões de edição */}
             {isEditing ? (

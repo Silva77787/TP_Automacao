@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from .models import Movie, Genre, Director, PlataformaUser, Review
-from django.contrib.auth.hashers import make_password
+from django.contrib.auth.hashers import make_password, check_password
 
 
 class GenreSerializer(serializers.ModelSerializer):
@@ -60,29 +60,67 @@ class UserDetailSerializer(serializers.ModelSerializer):
 
 
 class UserUpdateSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(write_only=True, required=False, style={'input_type': 'password'})
-    password_confirm = serializers.CharField(write_only=True, required=False, style={'input_type': 'password'})
+    old_password = serializers.CharField(
+        write_only=True, required=True, style={'input_type': 'password'}
+    )
+    password = serializers.CharField(
+        write_only=True, required=False, style={'input_type': 'password'}
+    )
+    password_confirm = serializers.CharField(
+        write_only=True, required=False, style={'input_type': 'password'}
+    )
 
     class Meta:
         model = PlataformaUser
-        fields = ['email', 'password', 'password_confirm']
+        fields = ['email', 'old_password', 'password', 'password_confirm']
 
     def validate(self, data):
-        if 'password' in data and 'password_confirm' in data:
-            if data['password'] != data['password_confirm']:
-                raise serializers.ValidationError({'password': 'Passwords must match'})
+        user = self.instance
+
+        # 1) Check old password matches current password (always required)
+        old_password = data.get('old_password')
+        if not old_password or not check_password(old_password, user.password):
+            raise serializers.ValidationError(
+                {'old_password': 'Old password is incorrect'}
+            )
+
+        # 2) If password is being changed, make sure confirmation matches
+        new_password = data.get('password')
+        new_password_confirm = data.get('password_confirm')
+        if new_password or new_password_confirm:
+            if not new_password or not new_password_confirm:
+                raise serializers.ValidationError(
+                    {'password': 'Both password and password_confirm are required'}
+                )
+            if new_password != new_password_confirm:
+                raise serializers.ValidationError(
+                    {'password': 'Passwords must match'}
+                )  
+
+        # 3) If email is being changed, ensure it is not already used by another user
+        new_email = data.get('email')
+        if new_email and new_email != user.email:
+            if PlataformaUser.objects.filter(email=new_email).exclude(pk=user.pk).exists():
+                raise serializers.ValidationError(
+                    {'email': 'This email is already in use'}
+                )
+
         return data
 
     def update(self, instance, validated_data):
-        password = validated_data.pop('password', None)
+        validated_data.pop('old_password', None)
         validated_data.pop('password_confirm', None)
-        
+
+        password = validated_data.pop('password', None)
+
+        # Update email (if present)
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
-        
+
+        # Update password (if present)
         if password:
             instance.password = make_password(password)
-        
+
         instance.save()
         return instance
 
