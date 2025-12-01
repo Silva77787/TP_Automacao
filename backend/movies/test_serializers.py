@@ -1,6 +1,6 @@
 from django.test import TestCase
 from django.core.exceptions import ValidationError
-from django.contrib.auth.hashers import check_password
+from django.contrib.auth.hashers import check_password,make_password
 from movies.serializers import (
     GenreSerializer, DirectorSerializer, MovieSerializer,
     UserRegistrationSerializer, UserDetailSerializer,
@@ -112,23 +112,27 @@ class TestUserRegistrationSerializer(TestCase):
 class TestUserUpdateSerializer(TestCase):
 
     def test_update_email(self):
-        user = PlataformaUser.objects.create(username="john", email="old@mail.com", password="x")
-        serializer = UserUpdateSerializer(user, data={"email": "new@mail.com"}, partial=True)
+        user = PlataformaUser.objects.create(username="john", email="old@mail.com", password=make_password("x"))
+        serializer = UserUpdateSerializer(
+            user, 
+            data={"email": "new@mail.com", "old_password": "x"}, 
+            partial=True
+        )
         self.assertTrue(serializer.is_valid())
         updated = serializer.save()
         self.assertEqual(updated.email, "new@mail.com")
 
     def test_update_password(self):
-        user = PlataformaUser.objects.create(username="john", email="a@mail.com", password="x")
-        data = {"password": "1234", "password_confirm": "1234"}
+        user = PlataformaUser.objects.create(username="john", email="a@mail.com", password=make_password("x"))
+        data = {"old_password": "x", "password": "1234", "password_confirm": "1234"}
         serializer = UserUpdateSerializer(user, data=data, partial=True)
         self.assertTrue(serializer.is_valid())
         updated = serializer.save()
         self.assertTrue(check_password("1234", updated.password))
 
     def test_password_mismatch(self):
-        user = PlataformaUser.objects.create(username="john", email="a@mail.com", password="x")
-        data = {"password": "1234", "password_confirm": "wrong"}
+        user = PlataformaUser.objects.create(username="john", email="a@mail.com", password=make_password("x"))
+        data = {"old_password": "x", "password": "1234", "password_confirm": "wrong"}
         serializer = UserUpdateSerializer(user, data=data, partial=True)
         self.assertFalse(serializer.is_valid())
         self.assertIn("password", serializer.errors)

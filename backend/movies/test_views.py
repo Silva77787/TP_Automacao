@@ -114,7 +114,7 @@ class TestUserViews(APITestCase):
         )
         # Login para obter token
         token_response = self.client.post(reverse("token_obtain_pair"), {
-            "identifier": "alice",
+            "email": "alice@mail.com",
             "password": "123"
         })
 
@@ -141,13 +141,14 @@ class TestUserViews(APITestCase):
 
     def test_update_email(self):
         url = reverse("update_user", kwargs={"username": "alice"})
-        response = self.client.put(url, {"email": "new@mail.com"}, format="json")
+        response = self.client.put(url, {"old_password": "123","email": "new@mail.com"}, format="json")
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data["user"]["email"], "new@mail.com")
 
     def test_update_password(self):
         url = reverse("update_user", kwargs={"username": "alice"})
         response = self.client.put(url, {
+            "old_password": "123",
             "password": "newpass",
             "password_confirm": "newpass"
         })
@@ -188,7 +189,7 @@ class TestMovieViews(APITestCase):
         )
 
         token_response = self.client.post(reverse("token_obtain_pair"), {
-            "identifier": "ron",
+            "email": "ron@mail.com",
             "password": "123"
         })
 
