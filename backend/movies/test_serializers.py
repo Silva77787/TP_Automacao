@@ -8,6 +8,10 @@ from movies.serializers import (
 )
 from movies.models import Genre, Director, Movie, PlataformaUser, Review
 from datetime import date
+from django.test import TestCase, RequestFactory
+from rest_framework.permissions import SAFE_METHODS
+from movies.permissions import IsOwnerOrReadOnly
+from movies.permissions import IsAuthenticated
 
 ############################################
 # GenreSerializer Tests
@@ -157,3 +161,94 @@ class TestMovieDetailSerializer(TestCase):
         serializer = MovieDetailSerializer(movie)
         self.assertEqual(len(serializer.data["reviews"]), 1)
         self.assertEqual(serializer.data["reviews"][0]["rating"], 9)
+
+
+
+
+############################################
+# IsOwnerOrReadOnly Tests (Permissions)
+############################################
+
+
+class TestIsOwnerOrReadOnly(TestCase):
+
+    def setUp(self):
+        self.factory = RequestFactory()
+        self.permission = IsOwnerOrReadOnly()
+        self.user_owner = PlataformaUser.objects.create(
+            username="owner",
+            password="123",
+            email="owner@test.com"
+        )
+        self.user_other = PlataformaUser.objects.create(
+            username="other",
+            password="123",
+            email="other@test.com"
+        )
+
+    def test_read_permission_allowed_for_anyone(self):
+        request = self.factory.get("/")
+        request.user = self.user_other  # user diferente do owner
+
+        result = self.permission.has_object_permission(
+            request,
+            None,
+            self.user_owner 
+        )
+
+        self.assertTrue(result)
+
+    def test_write_permission_allowed_for_owner(self):
+        request = self.factory.put("/")
+        request.user = self.user_owner
+
+        result = self.permission.has_object_permission(
+            request,
+            None,
+            self.user_owner
+        )
+
+        self.assertTrue(result)
+
+    def test_write_permission_denied_for_non_owner(self):
+        request = self.factory.put("/")
+        request.user = self.user_other
+
+        result = self.permission.has_object_permission(
+            request,
+            None,
+            self.user_owner
+        )
+
+        self.assertFalse(result)
+
+
+############################################
+# IsAuthenticated Tests (Permissions)
+############################################
+
+class TestIsAuthenticated(TestCase):
+
+    def setUp(self):
+        self.factory = RequestFactory()
+        self.permission = IsAuthenticated()
+
+        self.user = PlataformaUser.objects.create(
+            username="john",
+            password="abc",
+            email="john@test.com"
+        )
+
+    def test_allow_authenticated_user(self):
+        request = self.factory.get("/")
+        request.user = self.user
+        
+        result = self.permission.has_permission(request, None)
+        self.assertTrue(result)
+
+    def test_deny_if_no_user(self):
+        request = self.factory.get("/")
+        request.user = None  # sem user
+        
+        result = self.permission.has_permission(request, None)
+        self.assertFalse(result)
