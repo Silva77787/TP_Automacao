@@ -5,7 +5,7 @@ from django.http import JsonResponse
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.hashers import make_password, check_password
-
+from django.utils import timezone
 from rest_framework import status, viewsets
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated, AllowAny
@@ -284,7 +284,8 @@ def rate_movie(request):
             movie=movie,
             defaults={
                 'rating': rating,
-                'description': description
+                'description': description,
+                'created_at': timezone.now(),
             }
         )
 
