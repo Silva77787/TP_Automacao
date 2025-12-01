@@ -262,7 +262,7 @@ export function MovieDetails({
                           { color: textSecondary, marginTop: 4 },
                         ]}
                       >
-                        A sua descrição: {initialDescription}
+                        Descrição: {initialDescription}
                       </Text>
                     ) : null}
                   </View>

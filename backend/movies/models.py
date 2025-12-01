@@ -1,5 +1,5 @@
 from django.db import models
-
+from django.utils import timezone
 # Create your models here.
 
 
@@ -7,6 +7,7 @@ class PlataformaUser(models.Model):
     username = models.CharField(max_length=128, primary_key=True)
     password = models.CharField(max_length=128)
     email = models.CharField(max_length=128, unique=True)
+    joined_date = models.DateTimeField(default=timezone.now)
     USERNAME_FIELD = 'username'
     REQUIRED_FIELDS = ['email','password'] 
 
@@ -71,7 +72,7 @@ class Review(models.Model):
     movie = models.ForeignKey(Movie, on_delete=models.CASCADE)
     rating = models.FloatField()  
     description = models.TextField(blank=True) 
-    created_at = models.DateTimeField()
+    created_at = models.DateTimeField(default=timezone.now)
     
     class Meta:
         db_table = 'review'
