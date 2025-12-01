@@ -145,7 +145,7 @@ If your backend runs on a different URL, create `.env` file in `frontend/`:
 
 ```bash
 # frontend/.env
-EXPO_PUBLIC_API_URL=http://localhost:8000
+EXPO_PUBLIC_API_URL= https://findyourmovie.cbs-streaming.pt
 ```
 
 Then use it in your code:
