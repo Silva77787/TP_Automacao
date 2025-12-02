@@ -1,8 +1,11 @@
 import { API_ENDPOINTS } from "@/constants/api";
+
 import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/context/ThemeContext";
 import { useToast } from "@/context/ToastContext";
+
 import { Ionicons } from "@expo/vector-icons";
+
 import React, { useState } from "react";
 import {
   Modal,

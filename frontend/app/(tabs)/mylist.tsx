@@ -5,15 +5,16 @@ import { MovieDetailsWrapper } from "@/components/MovieDetailsWrapper";
 import { SearchBar, SortOption } from "@/components/SearchBar";
 import SideMenu from "@/components/SideMenu";
 import { Button } from "@/components/ui/button";
+
 import { API_ENDPOINTS } from "@/constants/api";
+
 import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/context/ThemeContext";
-import { useMovies } from "@/hooks/useMovies";
+
 import type { Movie } from "@/types/movie";
+
 import { Ionicons } from "@expo/vector-icons";
-import { useFocusEffect } from "@react-navigation/native";
-import { useRouter } from "expo-router";
-import { StatusBar } from "expo-status-bar";
+
 import React, { useCallback, useMemo, useState } from "react";
 import {
   ActivityIndicator,
@@ -24,6 +25,9 @@ import {
   useWindowDimensions,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useFocusEffect } from "@react-navigation/native";
+import { useRouter } from "expo-router";
+import { StatusBar } from "expo-status-bar";
 
 type UserReview = {
   id: number;
@@ -35,11 +39,26 @@ type UserReview = {
 
 export default function MyList() {
   const { isDark } = useTheme();
+
   const { width } = useWindowDimensions();
   const isLargeScreen = width >= 768;
+
+  let numColumns = 2;
+  if (width >= 768 && width < 1024) {
+    numColumns = 3;
+  } else if (width >= 1024 && width < 1400) {
+    numColumns = 4;
+  } else if (width >= 1400) {
+    numColumns = 5;
+  }
+
+  const horizontalPadding = 16;
+  const gap = 12;
+  const cardWidth =
+    (width - horizontalPadding * 2 - gap * (numColumns - 1)) / numColumns;
+
   const router = useRouter();
   const { user, accessToken } = useAuth();
-  const { movies: catalogMovies } = useMovies();
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [authVisible, setAuthVisible] = useState(false);
@@ -59,25 +78,9 @@ export default function MyList() {
   const [sortOption, setSortOption] = useState<SortOption>("default");
 
   const bgScreen = isDark ? "#151718" : "#f3f3f5";
-  const cardBg = isDark ? "#151718" : "#FFFFFF";
-  const cardBorder = isDark ? "#2b2c2e" : "#E5E7EB";
   const textMain = isDark ? "#f9fafb" : "#020617";
   const textMuted = isDark ? "#9ca3af" : "#6b7280";
   const notLoggedIcon = isDark ? "#e5e7eb" : "#1f2022";
-
-  let numColumns = 2;
-  if (width >= 768 && width < 1024) {
-    numColumns = 3;
-  } else if (width >= 1024 && width < 1400) {
-    numColumns = 4;
-  } else if (width >= 1400) {
-    numColumns = 5;
-  }
-
-  const horizontalPadding = 16;
-  const gap = 12;
-  const cardWidth =
-    (width - horizontalPadding * 2 - gap * (numColumns - 1)) / numColumns;
 
   const fetchUserReviews = useCallback(async () => {
     if (!user || !accessToken) return;
@@ -525,7 +528,6 @@ const styles = StyleSheet.create({
   moviesGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
-    justifyContent: "center",
   },
   searchContainer: {
     flexDirection: "row",
@@ -554,6 +556,7 @@ const styles = StyleSheet.create({
     color: "#fff",
   },
   emptyState: {
+    width: "100vw",
     paddingVertical: 48,
     alignItems: "center",
   },

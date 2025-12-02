@@ -4,10 +4,13 @@ import MovieHistoryItem from "@/components/MovieHistoryItem";
 import SideMenu from "@/components/SideMenu";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+
 import { API_ENDPOINTS } from "@/constants/api";
+
 import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/context/ThemeContext";
 import { useToast } from "@/context/ToastContext";
+
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
 import { useRouter } from "expo-router";
@@ -21,13 +24,13 @@ import {
   useWindowDimensions,
   View,
 } from "react-native";
-
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function Profile() {
   const { showToast } = useToast();
 
   const { isDark } = useTheme();
+
   const { width } = useWindowDimensions();
   const isLargeScreen = width >= 768;
 
@@ -43,7 +46,6 @@ export default function Profile() {
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [newPasswordConfirm, setNewPasswordConfirm] = useState("");
-  const [editPassword, setEditPassword] = useState("");
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [authVisible, setAuthVisible] = useState(false);
@@ -69,12 +71,8 @@ export default function Profile() {
   const cardBorder = isDark ? "#2b2c2eff" : "#E5E7EB";
   const textMain = isDark ? "#f9fafb" : "#020617";
   const textMuted = isDark ? "#9ca3af" : "#6b7280";
-  const statLabel = textMuted;
-  const statValue = textMain;
   const badgeBg = isDark ? "#313131ff" : "#E5E7EB";
   const badgeBorder = isDark ? "#9BA1A6" + "50" : "#D1D5DB";
-  const inputBg = isDark ? "#313131ff" : "#FFFFFF";
-  const inputBorder = isDark ? "#9BA1A6" + "50" : "#D1D5DB";
   const notLoggedIcon = isDark ? "#e5e7eb" : "#1f2022ff";
 
   const handleSave = async () => {
@@ -225,38 +223,6 @@ export default function Profile() {
     }
   }, [user, accessToken]);
 
-  const fetchRecentReviews = useCallback(async () => {
-    if (!user || !accessToken) return;
-
-    try {
-      const res = await fetch(API_ENDPOINTS.GET_USER_REVIEWS(user.username), {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${accessToken}`,
-        },
-      });
-
-      const data = await res.json();
-      console.log("GET_USER_REVIEWS (profile) status:", res.status, data);
-
-      if (!res.ok || data.success === false) {
-        console.log("Erro ao carregar reviews:", data);
-        return;
-      }
-
-      const reviews: UserReview[] = data.reviews || [];
-
-      const sorted = [...reviews].sort(
-        (a, b) =>
-          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-      );
-
-      setRecentReviews(sorted.slice(0, 3));
-    } catch (err) {
-      console.log("Erro de rede ao carregar reviews:", err);
-    }
-  }, [user, accessToken]);
-
   const fetchUserReviews = useCallback(async () => {
     if (!user || !accessToken) return;
 
@@ -279,7 +245,6 @@ export default function Profile() {
       const reviews: UserReview[] = data.reviews || [];
       setAllReviews(reviews);
 
-      // Ordenar por data desc → pegar apenas 3
       const sorted = [...reviews].sort(
         (a, b) =>
           new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
@@ -304,6 +269,46 @@ export default function Profile() {
     totalRatings > 0
       ? allReviews.reduce((sum, r) => sum + r.rating, 0) / totalRatings
       : 0;
+
+  function formatTimeAgo(isoDate: string): string {
+    const date = new Date(isoDate);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+
+    if (diffMs < 0) return "Agora mesmo";
+
+    const diffMinutes = Math.floor(diffMs / 60000);
+    if (diffMinutes < 1) return "Agora mesmo";
+    if (diffMinutes < 60) return `Há ${diffMinutes} min`;
+
+    const diffHours = Math.floor(diffMinutes / 60);
+    if (diffHours < 24) return `Há ${diffHours} h`;
+
+    const diffDays = Math.floor(diffHours / 24);
+    if (diffDays === 1) return "Há 1 dia";
+    if (diffDays < 7) return `Há ${diffDays} dias`;
+
+    const diffWeeks = Math.floor(diffDays / 7);
+    if (diffWeeks === 1) return "Há 1 semana";
+
+    return `Há ${diffWeeks} semanas`;
+  }
+
+  function mapRatingToStars(rating: number): number {
+    const stars = Math.round(rating / 2);
+    return Math.min(Math.max(stars, 0), 5);
+  }
+
+  function formatDateDDMMYYYY(isoDate: string): string {
+    const d = new Date(isoDate);
+    if (Number.isNaN(d.getTime())) return "";
+
+    const day = String(d.getDate()).padStart(2, "0");
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const year = d.getFullYear();
+
+    return `${day}-${month}-${year}`;
+  }
 
   if (!user) {
     return (
@@ -496,7 +501,9 @@ export default function Profile() {
                 >
                   <Ionicons name="calendar" size={14} color={textMain} />
                   <Text style={[styles.badgeText, { color: textMain }]}>
-                    {memberSince ? `Membro desde ${memberSince}` : "Membro desde -"}
+                    {memberSince
+                      ? `Membro desde ${memberSince}`
+                      : "Membro desde -"}
                   </Text>
                 </View>
               </View>
@@ -682,46 +689,6 @@ export default function Profile() {
     </SafeAreaView>
   );
 }
-
-function formatTimeAgo(isoDate: string): string {
-  const date = new Date(isoDate);
-  const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
-
-  if (diffMs < 0) return "Agora mesmo";
-
-  const diffMinutes = Math.floor(diffMs / 60000);
-  if (diffMinutes < 1) return "Agora mesmo";
-  if (diffMinutes < 60) return `Há ${diffMinutes} min`;
-
-  const diffHours = Math.floor(diffMinutes / 60);
-  if (diffHours < 24) return `Há ${diffHours} h`;
-
-  const diffDays = Math.floor(diffHours / 24);
-  if (diffDays === 1) return "Há 1 dia";
-  if (diffDays < 7) return `Há ${diffDays} dias`;
-
-  const diffWeeks = Math.floor(diffDays / 7);
-  if (diffWeeks === 1) return "Há 1 semana";
-
-  return `Há ${diffWeeks} semanas`;
-}
-
-function mapRatingToStars(rating: number): number {
-  const stars = Math.round(rating / 2);
-  return Math.min(Math.max(stars, 0), 5);
-}
-function formatDateDDMMYYYY(isoDate: string): string {
-  const d = new Date(isoDate);
-  if (Number.isNaN(d.getTime())) return ""; // fallback simples
-
-  const day = String(d.getDate()).padStart(2, "0");
-  const month = String(d.getMonth() + 1).padStart(2, "0");
-  const year = d.getFullYear();
-
-  return `${day}-${month}-${year}`;
-}
-
 
 const styles = StyleSheet.create({
   safeArea: {

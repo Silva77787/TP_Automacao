@@ -24,18 +24,9 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function RecommendationsScreen() {
   const { isDark } = useTheme();
+
   const { width } = useWindowDimensions();
   const isLargeScreen = width >= 768;
-  const router = useRouter();
-
-  const { user } = useAuth();
-  const { movies, loading, error } = useMovies();
-
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [showLogin, setShowLogin] = useState(false);
-  const [isLogin, setIsLogin] = useState(true);
-  const [selectedMovieId, setSelectedMovieId] = useState<number | null>(null);
-  const [detailsVisible, setDetailsVisible] = useState(false);
 
   let numColumns = 2;
   if (width >= 768 && width < 1024) {
@@ -50,6 +41,15 @@ export default function RecommendationsScreen() {
   const gap = 12;
   const cardWidth =
     (width - horizontalPadding * 2 - gap * (numColumns - 1)) / numColumns;
+
+  const router = useRouter();
+  const { movies, loading, error } = useMovies();
+
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [showLogin, setShowLogin] = useState(false);
+  const [isLogin, setIsLogin] = useState(true);
+  const [selectedMovieId, setSelectedMovieId] = useState<number | null>(null);
+  const [detailsVisible, setDetailsVisible] = useState(false);
 
   const bgScreen = isDark ? "#151718" : "#F3F4F6";
   const textMain = isDark ? "#f9fafb" : "#020617";

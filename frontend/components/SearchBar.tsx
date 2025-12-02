@@ -54,7 +54,6 @@ export function SearchBar({
 }: SearchBarProps) {
   const { isDark } = useTheme();
 
-  // --- Drag horizontal no web (para géneros) ---
   const scrollRef = useRef<ScrollView | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const dragData = useRef({ startX: 0, startScrollX: 0 });
@@ -85,7 +84,6 @@ export function SearchBar({
 
   const genresToShow = useMemo(() => genres, [genres]);
 
-  // --- SORT BUTTON (ciclo: default → rating↓ → rating↑ → ano↓ → ano↑ → default) ---
   const handleCycleSort = () => {
     let next: SortOption;
     switch (sortOption) {
