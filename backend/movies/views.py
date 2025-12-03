@@ -7,6 +7,8 @@ from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.hashers import check_password
 from .models import PlataformaUser, Movie, Review
+from django.db.models import Avg, Count, Q
+from datetime import datetime, timedelta
 # Create your views here.
 
 def get_movie(request, movie_id):
@@ -33,11 +35,9 @@ def register_user(request):
         if not username or not password or not email:
             return JsonResponse({'error': 'All fields are required'}, status=400)
 
-        # Check if user or email already exists
         if PlataformaUser.objects.filter(username=username).exists() or PlataformaUser.objects.filter(email=email).exists():
             return JsonResponse({'error': 'Username or email already exists'}, status=409)
 
-        # Hash password with Django's built-in hasher
         hashed_password = make_password(password)
 
         try:
@@ -53,24 +53,20 @@ def register_user(request):
 def login_user(request):
     if request.method == 'POST':
         data = json.loads(request.body)
-        identifier = data.get('identifier')  # username or email
+        identifier = data.get('identifier')  
         password = data.get('password')
 
         if not identifier or not password:
             return JsonResponse({'error': 'All fields are required'}, status=400)
 
-        # Find user by username or email
         user = PlataformaUser.objects.filter(username=identifier).first()
         if user is None:
             user = PlataformaUser.objects.filter(email=identifier).first()
 
-        # Security: Do not reveal if username/email does not exist
         if user is None:
             return JsonResponse({'error': 'Invalid credentials'}, status=401)
 
-        # Check password
         if check_password(password, user.password):
-            # TODO: Generate JWT token here (for demo, return success)
             return JsonResponse({'success': 'Login successful', 'username': user.username}, status=200)
         else:
             return JsonResponse({'error': 'Invalid credentials'}, status=401)
@@ -86,23 +82,19 @@ def rate_movie(request):
         rating = data.get('rating')
         description = data.get('description', '')
         
-        # Validation
         if not username or not movie_id or rating is None:
             return JsonResponse({'error': 'Username, movie_id, and rating are required'}, status=400)
         
-        # Check if user exists
         try:
             user = PlataformaUser.objects.get(username=username)
         except PlataformaUser.DoesNotExist:
             return JsonResponse({'error': 'User not found'}, status=404)
         
-        # Check if movie exists
         try:
             movie = Movie.objects.get(id=movie_id)
         except Movie.DoesNotExist:
             return JsonResponse({'error': 'Movie not found'}, status=404)
         
-        # Create or update review
         from .models import Review
         review, created = Review.objects.update_or_create(
             user=user,
@@ -148,20 +140,16 @@ def update_user(request, username):
         new_email = data.get('email')
         new_password = data.get('password')
         
-        # Get user
         try:
             user = PlataformaUser.objects.get(username=username)
         except PlataformaUser.DoesNotExist:
             return JsonResponse({'error': 'User not found'}, status=404)
         
-        # Update email if provided
         if new_email:
-            # Check if email already exists for another user
             if PlataformaUser.objects.filter(email=new_email).exclude(username=username).exists():
                 return JsonResponse({'error': 'Email already in use'}, status=409)
             user.email = new_email
         
-        # Update password if provided
         if new_password:
             user.password = make_password(new_password)
         
@@ -169,4 +157,147 @@ def update_user(request, username):
         return JsonResponse({'success': 'User updated'}, status=200)
     
     return JsonResponse({'error': 'Invalid request'}, status=405)
+
+def popular_recommendations(request):
+
+    days = int(request.GET.get('days', 30))
+    limit = int(request.GET.get('limit', 20))
+    
+
+    date_threshold = datetime.now() - timedelta(days=days)
+    
+    # Filmes com avaliações recentes
+    popular_movies = Movie.objects.filter(
+        review__created_at__gte=date_threshold
+    ).annotate(
+        recent_rating=Avg('review__rating'),
+        recent_count=Count('review')
+    ).filter(
+        recent_count__gte=5,  
+        recent_rating__gte=4.0  
+    ).order_by('-recent_rating', '-recent_count')[:limit]
+    
+    movies_data = [{
+        'id': movie.id,
+        'title': movie.title,
+        'rating': float(movie.recent_rating),
+        'total_ratings': movie.recent_count,
+        'release_date': movie.release_date,
+        'description': movie.description
+    } for movie in popular_movies]
+    
+    return JsonResponse({'recommendations': movies_data}, status=200)
         
+def for_you_recommendations(request):
+    
+    username = request.GET.get('username')
+    limit = int(request.GET.get('limit', 20))
+    
+    if not username:
+        return JsonResponse({'error': 'Username é obrigatório'}, status=400)
+    
+    try:
+        user = PlataformaUser.objects.get(username=username)
+    except PlataformaUser.DoesNotExist:
+        return JsonResponse({'error': 'User not found'}, status=404)
+    
+    liked_movies = Review.objects.filter(
+        user=user,
+        rating__gte=4.0
+    ).values_list('movie_id', flat=True)
+    
+    if not liked_movies:
+        return popular_recommendations(request)
+    
+    favorite_genre_ids = Movie.objects.filter(
+        id__in=liked_movies
+    ).values('genremovie__genre_id').annotate(
+        count=Count('id')
+    ).order_by('-count')[:3]
+    
+    genre_ids = [g['genremovie__genre_id'] for g in favorite_genre_ids if g['genremovie__genre_id']]
+    
+    if not genre_ids:
+        return popular_recommendations(request)
+    
+    recommendations = Movie.objects.filter(
+        genremovie__genre_id__in=genre_ids
+    ).exclude(
+        id__in=liked_movies
+    ).filter(
+        rating__gte=4.0
+    ).distinct().order_by('-rating')[:limit]
+
+    if recommendations.count() == 0:
+        return popular_recommendations(request)
+    
+    movies_data = [{
+        'id': movie.id,
+        'title': movie.title,
+        'rating': float(movie.rating),
+        'total_ratings': movie.total_ratings,
+        'release_date': movie.release_date,
+        'description': movie.description
+    } for movie in recommendations]
+    
+    return JsonResponse({'recommendations': movies_data}, status=200)
+
+def collaborative_recommendations(request):
+    
+    username = request.GET.get('username')
+    days = int(request.GET.get('days', 60))
+    limit = int(request.GET.get('limit', 20))
+    
+    if not username:
+        return JsonResponse({'error': 'Username é obrigatório'}, status=400)
+    
+    try:
+        user = PlataformaUser.objects.get(username=username)
+    except PlataformaUser.DoesNotExist:
+        return JsonResponse({'error': 'User not found'}, status=404)
+    
+    
+    user_liked_reviews = Review.objects.filter(user=user, rating__gte=4.0)
+    user_liked_movie_ids = list(user_liked_reviews.values_list('movie_id', flat=True))
+    
+    all_user_movie_ids = list(Review.objects.filter(user=user).values_list('movie_id', flat=True))
+    
+    if len(user_liked_movie_ids) < 3:
+        return popular_recommendations(request)
+    
+    
+    similar_users = PlataformaUser.objects.filter(
+        review__movie_id__in=user_liked_movie_ids, 
+        review__rating__gte=4.0                      
+    ).exclude(
+        username=username
+    ).annotate(
+        common_liked_movies=Count('review', distinct=True)
+    ).filter(
+        common_liked_movies__gte=3  
+    ).order_by('-common_liked_movies')[:10]
+    
+   
+    date_threshold = datetime.now() - timedelta(days=days)
+    
+    
+    recommendations = Movie.objects.filter(
+        review__user__in=similar_users,
+        review__rating__gte=4.0,
+        review__created_at__gte=date_threshold
+    ).exclude(
+        id__in=all_user_movie_ids  
+    ).annotate(
+        likers_count=Count('review', distinct=True)
+    ).order_by('-likers_count', '-rating')[:limit]
+    
+    movies_data = [{
+        'id': movie.id,
+        'title': movie.title,
+        'rating': float(movie.rating),
+        'total_ratings': movie.total_ratings,
+        'release_date': movie.release_date,
+        'description': movie.description
+    } for movie in recommendations]
+    
+    return JsonResponse({'recommendations': movies_data}, status=200)          
