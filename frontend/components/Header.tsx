@@ -48,7 +48,7 @@ export default function Header({ isLargeScreen, onOpenMenu, onLogin }: Props) {
                   Search
                 </Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.navItem}>
+              <TouchableOpacity onPress={() => router.push("/mylist")} style={styles.navItem}>
                 <Text style={[styles.navText, isDark && styles.navTextDark]}>
                   My List
                 </Text>

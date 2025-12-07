@@ -1,40 +1,137 @@
-import React from "react";
+import { useAuth } from "@/context/AuthContext";
+import { useTheme } from "@/context/ThemeContext";
+import { useRateMovie } from "@/hooks/useMovies";
+import { Movie } from "@/types/movie";
+import { Ionicons } from "@expo/vector-icons";
+import { Image } from "expo-image";
+import React, { useEffect, useState } from "react";
 import {
-  View,
-  Text,
-  StyleSheet,
   Modal,
+  Pressable,
   ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
   TouchableOpacity,
   useWindowDimensions,
-  Pressable,
+  View,
 } from "react-native";
-import { Image } from "expo-image";
-import { Ionicons } from "@expo/vector-icons";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
-import { Movie } from "@/types/movie";
-import { useTheme } from "@/context/ThemeContext";
 
 interface MovieDetailsProps {
   movie: Movie | null;
   visible: boolean;
   onClose: () => void;
+  onRated?: (
+    movieId: number,
+    newAverage: number,
+    newTotal: number,
+    userRating: number
+  ) => void;
 }
 
-export function MovieDetails({ movie, visible, onClose }: MovieDetailsProps) {
+export function MovieDetails({
+  movie,
+  visible,
+  onClose,
+  onRated,
+}: MovieDetailsProps) {
   const { isDark } = useTheme();
+  const { user } = useAuth();
+  const { rateMovie, loading: ratingLoading } = useRateMovie();
   const { width, height } = useWindowDimensions();
+
+  const [userRating, setUserRating] = useState<number | null>(null);
+  const [ratingDescription, setRatingDescription] = useState("");
+  const [isRatingMode, setIsRatingMode] = useState(false);
+  const [initialUserRating, setInitialUserRating] = useState<number | null>(
+    null
+  );
+  const [initialDescription, setInitialDescription] = useState<string>("");
+
+  useEffect(() => {
+    if (movie?.user_rating && movie.user_rating > 0) {
+      setUserRating(movie.user_rating);
+      setInitialUserRating(movie.user_rating);
+      setRatingDescription(movie.user_description || "");
+      setInitialDescription(movie.user_description || "");
+    } else {
+      setUserRating(null);
+      setInitialUserRating(null);
+      setRatingDescription("");
+      setInitialDescription("");
+    }
+    setIsRatingMode(false);
+  }, [movie]);
 
   if (!movie) return null;
 
   const isLargeScreen = width >= 768;
-  const modalWidth = isLargeScreen ? width * 0.6 : width * 1; 
-  const modalHeight = height;                                   
+  const modalWidth = isLargeScreen ? width * 0.6 : width * 1;
+  const modalHeight = height;
   const bg = isDark ? "#000" : "#FFF";
   const titleColor = isDark ? "#FFFFFF" : "#000000";
   const textPrimary = isDark ? "#FFFFFF" : "#000000";
   const textSecondary = isDark ? "#9BA1A6" : "#687076";
+
+  const year = new Date(movie.release_date).getFullYear();
+  const imageUri = movie.image
+    ? `https://image.tmdb.org/t/p/w500${movie.image}`
+    : "https://via.placeholder.com/500x750?text=No+Image";
+
+  const handleStartRating = () => {
+    if (!user) {
+      return;
+    }
+    setIsRatingMode(true);
+    setUserRating(initialUserRating ?? null);
+    setRatingDescription(initialDescription ?? "");
+  };
+
+  const handleCancelRating = () => {
+    setUserRating(initialUserRating);
+    setRatingDescription(initialDescription);
+    setIsRatingMode(false);
+  };
+
+  const handleSelectStar = (value: number) => {
+    setUserRating(value);
+  };
+
+  const handleRateMovie = async () => {
+    if (!user) {
+      return;
+    }
+
+    if (!userRating || userRating < 1 || userRating > 10) {
+      return;
+    }
+
+    const result = await rateMovie(movie.id, userRating, ratingDescription);
+
+    if (result) {
+      // guardar como estado inicial (para próximo edit)
+      setInitialUserRating(userRating);
+      setInitialDescription(ratingDescription);
+      movie.user_description = ratingDescription;
+
+      if (onRated && movie) {
+        onRated(
+          movie.id,
+          result.movieAverageRating,
+          result.movieTotalRatings,
+          userRating
+        );
+      }
+
+      setIsRatingMode(false);
+    }
+  };
+
+  //Filter to remove user own rating from the list
+  const otherReviews =
+    movie.reviews?.filter((rev: any) => rev.username !== user?.username) || [];
 
   return (
     <Modal
@@ -44,11 +141,8 @@ export function MovieDetails({ movie, visible, onClose }: MovieDetailsProps) {
       onRequestClose={onClose}
     >
       <View style={styles.overlay}>
-
-        {/* CLICK FORA PARA FECHAR */}
         <Pressable style={styles.backdrop} onPress={onClose} />
 
-        {/* MODAL RESPONSIVO */}
         <View
           style={[
             styles.container,
@@ -63,27 +157,24 @@ export function MovieDetails({ movie, visible, onClose }: MovieDetailsProps) {
             style={styles.scrollView}
             showsVerticalScrollIndicator={false}
           >
-            {/* IMAGEM */}
+            {/* IMAGE HEADER */}
             <View style={[styles.imageContainer, { height: height * 0.5 }]}>
               <Image
-                source={{ uri: movie.image }}
+                source={{ uri: imageUri }}
                 style={styles.image}
                 contentFit="cover"
               />
-
-              {/* Botão de fechar */}
               <TouchableOpacity style={styles.closeButton} onPress={onClose}>
                 <Ionicons name="close" size={24} color="#fff" />
               </TouchableOpacity>
             </View>
 
-            {/* CONTEÚDO */}
+            {/* CONTENT BODY */}
             <View style={styles.content}>
               <Text style={[styles.title, { color: titleColor }]}>
                 {movie.title}
               </Text>
 
-              {/* META */}
               <View style={styles.meta}>
                 <View style={styles.metaItem}>
                   <Ionicons name="star" size={16} color="#FFD700" />
@@ -91,7 +182,6 @@ export function MovieDetails({ movie, visible, onClose }: MovieDetailsProps) {
                     {movie.rating.toFixed(1)}/10
                   </Text>
                 </View>
-
                 <View style={styles.metaItem}>
                   <Ionicons
                     name="calendar-outline"
@@ -99,70 +189,270 @@ export function MovieDetails({ movie, visible, onClose }: MovieDetailsProps) {
                     color={textSecondary}
                   />
                   <Text style={[styles.metaText, { color: textSecondary }]}>
-                    {movie.year}
+                    {year}
                   </Text>
                 </View>
-
                 <View style={styles.metaItem}>
                   <Ionicons
-                    name="time-outline"
+                    name="people-outline"
                     size={16}
                     color={textSecondary}
                   />
                   <Text style={[styles.metaText, { color: textSecondary }]}>
-                    {movie.runtime} min
+                    {movie.total_ratings} ratings
                   </Text>
                 </View>
               </View>
 
               <View style={styles.badgeContainer}>
-                <Badge>{movie.genre}</Badge>
+                {movie.genres?.map((genre) => (
+                  <Badge key={genre.id} style={styles.genreBadge}>
+                    {genre.gerne_name}
+                  </Badge>
+                ))}
               </View>
 
-              {/* OVERVIEW */}
               <View style={styles.section}>
                 <Text style={[styles.sectionTitle, { color: textSecondary }]}>
-                  Overview
+                  Sinopse
                 </Text>
-                <Text style={[styles.sectionText, { color: textSecondary }]}>
+                <Text style={[styles.sectionText, { color: textPrimary }]}>
                   {movie.description}
                 </Text>
               </View>
 
-              {/* DIRECTOR */}
               <View style={styles.section}>
                 <Text style={[styles.sectionTitle, { color: textSecondary }]}>
-                  Director
+                  Diretor
                 </Text>
-                <Text style={[styles.sectionText, { color: textPrimary }]}>
-                  {movie.director}
-                </Text>
+                {movie.directors?.map((director) => (
+                  <View key={director.id}>
+                    <Text style={[styles.sectionText, { color: textPrimary }]}>
+                      {director.name}
+                    </Text>
+                  </View>
+                ))}
               </View>
 
-              {/* CAST */}
+              {/* RATING SECTION */}
               <View style={styles.section}>
                 <Text style={[styles.sectionTitle, { color: textSecondary }]}>
-                  Cast
+                  Classificação
                 </Text>
-                <Text style={[styles.sectionText, { color: textPrimary }]}>
-                  {movie.cast.join(", ")}
-                </Text>
+
+                {/* Info da classificação atual do user (se existir) */}
+                {!isRatingMode && initialUserRating && initialUserRating > 0 ? (
+                  <View style={{ marginBottom: 8 }}>
+                    <View style={styles.userRatingRow}>
+                      <Ionicons name="star" size={16} color="#FFD700" />
+                      <Text
+                        style={[
+                          styles.sectionText,
+                          { color: textPrimary, fontWeight: "500" },
+                        ]}
+                      >
+                        A sua classificação: {initialUserRating}/10
+                      </Text>
+                    </View>
+
+                    {initialDescription ? (
+                      <Text
+                        style={[
+                          styles.sectionText,
+                          { color: textSecondary, marginTop: 4 },
+                        ]}
+                      >
+                        Descrição: {initialDescription}
+                      </Text>
+                    ) : null}
+                  </View>
+                ) : !isRatingMode ? (
+                  <Text
+                    style={[
+                      styles.sectionText,
+                      {
+                        color: textSecondary,
+                        fontStyle: "italic",
+                        marginBottom: 8,
+                      },
+                    ]}
+                  >
+                    Ainda não avaliou este filme.
+                  </Text>
+                ) : null}
+
+                {/* Botão que abre o modo de classificação */}
+                {!isRatingMode && (
+                  <Button
+                    style={{ marginTop: 4 }}
+                    size="lg"
+                    onPress={handleStartRating}
+                    disabled={ratingLoading}
+                  >
+                    {user
+                      ? initialUserRating
+                        ? "Editar classificação"
+                        : "Classificar filme"
+                      : "Faça login para classificar"}
+                  </Button>
+                )}
+
+                {/* Zona de rating só aparece depois de clicar no botão */}
+                {isRatingMode && (
+                  <View style={{ marginTop: 12 }}>
+                    <Text
+                      style={[
+                        styles.sectionText,
+                        { color: textPrimary, marginBottom: 4 },
+                      ]}
+                    >
+                      Escolha uma classificação (1–10):
+                    </Text>
+
+                    {/* ESTRELAS 1–10 */}
+                    <View style={styles.starsRow}>
+                      {Array.from({ length: 10 }, (_, i) => i + 1).map(
+                        (value) => {
+                          const filled =
+                            (userRating ?? 0) >= value
+                              ? "star"
+                              : "star-outline";
+                          return (
+                            <TouchableOpacity
+                              key={value}
+                              onPress={() => handleSelectStar(value)}
+                              style={styles.starButton}
+                            >
+                              <Ionicons
+                                name={filled}
+                                size={22}
+                                color="#FFD700"
+                              />
+                            </TouchableOpacity>
+                          );
+                        }
+                      )}
+                    </View>
+
+                    {/* Descrição */}
+                    <Text
+                      style={[
+                        styles.sectionText,
+                        {
+                          color: textSecondary,
+                          marginTop: 12,
+                          marginBottom: 4,
+                        },
+                      ]}
+                    >
+                      A sua descrição (opcional):
+                    </Text>
+                    <TextInput
+                      value={ratingDescription}
+                      onChangeText={setRatingDescription}
+                      placeholder="Escreva o que pensa acerca do filme"
+                      placeholderTextColor={textSecondary}
+                      multiline
+                      style={{
+                        borderWidth: 1,
+                        borderColor: textSecondary,
+                        borderRadius: 4,
+                        paddingHorizontal: 8,
+                        paddingVertical: 6,
+                        color: textPrimary,
+                        minHeight: 60,
+                        textAlignVertical: "top",
+                      }}
+                    />
+
+                    {/* BOTÕES GUARDAR / CANCELAR */}
+                    <View style={styles.actions}>
+                      <Button
+                        style={styles.actionButton}
+                        size="lg"
+                        onPress={handleRateMovie}
+                        loading={ratingLoading}
+                        disabled={ratingLoading}
+                      >
+                        Guardar
+                      </Button>
+                      <Button
+                        style={styles.actionButton}
+                        size="lg"
+                        variant="outline"
+                        onPress={handleCancelRating}
+                        disabled={ratingLoading}
+                      >
+                        Cancelar
+                      </Button>
+                    </View>
+                  </View>
+                )}
               </View>
 
-              {/* ACTIONS */}
-              <View style={styles.actions}>
-                <Button style={styles.actionButton} size="lg">
-                  Watch Trailer
-                </Button>
-                <Button variant="outline" style={styles.actionButton} size="lg">
-                  Add to Watchlist
-                </Button>
-              </View>
+              {/* OUTROS RATINGS */}
+              <View style={styles.section}>
+                <Text style={[styles.sectionTitle, { color: textSecondary }]}>
+                  Ratings
+                </Text>
 
+                {otherReviews.length > 0 ? (
+                  otherReviews.map((rev: any, index: number) => {
+                    const showDivider = index !== otherReviews.length - 1;
+
+                    return (
+                      <View
+                        key={rev.id}
+                        style={[
+                          styles.reviewItem,
+                          showDivider && styles.reviewItemSeparator,
+                          showDivider && { borderBottomColor: textSecondary },
+                        ]}
+                      >
+                        {/* Linha com username + rating com estrela */}
+                        <View style={styles.reviewRatingRow}>
+                          <Text
+                            style={[styles.sectionText, { color: textPrimary }]}
+                          >
+                            Username: {rev.username}
+                          </Text>
+
+                          <View style={styles.reviewRatingValue}>
+                            <Ionicons name="star" size={14} color="#FFD700" />
+                            <Text
+                              style={[
+                                styles.sectionText,
+                                { color: textPrimary, marginLeft: 4 },
+                              ]}
+                            >
+                              Rating: {rev.rating}/10
+                            </Text>
+                          </View>
+                        </View>
+
+                        {/* Descrição só aparece se existir */}
+                        {rev.description ? (
+                          <Text
+                            style={[
+                              styles.sectionText,
+                              { color: textSecondary, marginTop: 2 },
+                            ]}
+                          >
+                            Descrição: {rev.description}
+                          </Text>
+                        ) : null}
+                      </View>
+                    );
+                  })
+                ) : (
+                  <Text style={[styles.sectionText, { color: textSecondary }]}>
+                    No ratings yet.
+                  </Text>
+                )}
+              </View>
             </View>
           </ScrollView>
         </View>
-
       </View>
     </Modal>
   );
@@ -174,7 +464,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "flex-end",
-    backgroundColor: "rgba(0,0,0,0.7)", 
+    backgroundColor: "rgba(0,0,0,0.7)",
   },
   backdrop: {
     ...StyleSheet.absoluteFillObject,
@@ -227,7 +517,13 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   badgeContainer: {
+    flexDirection: "row",
+    gap: 8,
     marginBottom: 24,
+    flexWrap: "wrap",
+  },
+  genreBadge: {
+    alignSelf: "flex-start",
   },
   section: {
     marginBottom: 20,
@@ -244,10 +540,40 @@ const styles = StyleSheet.create({
   actions: {
     flexDirection: "row",
     gap: 12,
-    marginTop: 8,
-    marginBottom: 24,
+    marginTop: 12,
   },
   actionButton: {
     flex: 1,
+  },
+  starsRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 4,
+    marginTop: 4,
+  },
+  starButton: {
+    padding: 2,
+  },
+  userRatingRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  reviewItem: {
+    paddingVertical: 8,
+  },
+  reviewItemSeparator: {
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    marginTop: 8,
+    paddingBottom: 8,
+  },
+  reviewRatingRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  reviewRatingValue: {
+    flexDirection: "row",
+    alignItems: "center",
   },
 });

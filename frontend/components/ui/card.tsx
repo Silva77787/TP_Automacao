@@ -11,7 +11,7 @@ export function Card({ children, style }: CardProps) {
   const { isDark } = useTheme();
 
   const backgroundColor = isDark ? "#151718" : "#FFFFFF";
-  const borderColor = isDark ? "#111827" : "#E5E7EB";
+  const borderColor = isDark ? "#2a2c30ff" : "#E5E7EB";
 
   return (
     <View

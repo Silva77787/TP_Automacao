@@ -8,9 +8,10 @@ import { API_ENDPOINTS } from "@/constants/api";
 import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/context/ThemeContext";
 import { Ionicons } from "@expo/vector-icons";
+import { useFocusEffect } from "@react-navigation/native";
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -33,11 +34,14 @@ export default function Profile() {
 
   const [username, setUsername] = useState<string | null>(null);
   const [email, setEmail] = useState<string | null>(null);
-
-  const { user } = useAuth();
+  const [memberSince, setMemberSince] = useState<string | null>(null);
+  const { user, accessToken } = useAuth();
 
   const [isEditing, setIsEditing] = useState(false);
   const [editEmail, setEditEmail] = useState("");
+  const [oldPassword, setOldPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [newPasswordConfirm, setNewPasswordConfirm] = useState("");
   const [editPassword, setEditPassword] = useState("");
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -47,6 +51,17 @@ export default function Profile() {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  type UserReview = {
+    id: number;
+    rating: number;
+    description?: string | null;
+    created_at: string;
+    movie?: { id: number; title: string };
+  };
+
+  const [allReviews, setAllReviews] = useState<UserReview[]>([]);
+  const [recentReviews, setRecentReviews] = useState<UserReview[]>([]);
 
   const bgScreen = isDark ? "#151718" : "#F3F4F6";
   const cardBg = isDark ? "#151718" : "#FFFFFF";
@@ -62,17 +77,34 @@ export default function Profile() {
   const notLoggedIcon = isDark ? "#e5e7eb" : "#1f2022ff";
 
   const handleSave = async () => {
-    if (!user) return;
-
-    const body: { email?: string; password?: string } = {};
+    if (!user || !accessToken) return;
+    const trimmedOldPassword = oldPassword.trim();
     const trimmedEmail = editEmail.trim();
-    const trimmedPassword = editPassword.trim();
+    const trimmedNewPassword = newPassword.trim();
+    const trimmedNewPasswordConfirm = newPasswordConfirm.trim();
 
+    if (!trimmedOldPassword) {
+      Alert.alert("Erro", "Introduza a password atual para guardar alterações.");
+      return;
+    }
+    const body: {
+      email?: string;
+      old_password: string;
+      password?: string;
+      password_confirm?: string;
+    } = {
+      old_password: trimmedOldPassword,
+    };
     if (trimmedEmail && trimmedEmail !== email) {
       body.email = trimmedEmail;
     }
-    if (trimmedPassword) {
-      body.password = trimmedPassword;
+    if (trimmedNewPassword || trimmedNewPasswordConfirm) {
+      if (!trimmedNewPassword || !trimmedNewPasswordConfirm){
+        Alert.alert("Erro", "Para alterar a password preencha os dois campos da nova password");
+        return;
+      }
+      body.password = trimmedNewPassword;
+      body.password_confirm = trimmedNewPasswordConfirm;
     }
 
     if (!body.email && !body.password) {
@@ -84,21 +116,29 @@ export default function Profile() {
       setSaving(true);
       const res = await fetch(API_ENDPOINTS.UPDATE_USER(user.username), {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
         body: JSON.stringify(body),
       });
 
       const data = await res.json();
+      console.log("UPDATE_USER status:", res.status, data);
 
-      if (!res.ok) {
-        Alert.alert("Erro", data.error || "Falha ao atualizar utilizador.");
+      if (!res.ok || data.success === false) {
+        const msg =data.errors?.old_password?.[0] ||data.errors?.email?.[0] ||data.errors?.password?.[0] ||data.error || "Falha ao atualizar utilizador.";
+        Alert.alert("Erro", msg);
         return;
       }
 
-      if (body.email) {
-        setEmail(trimmedEmail);
+      if (data.user?.email) {
+        setEmail(data.user.email);
+        setEditEmail(data.user.email);
       }
-      setEditPassword("");
+      setOldPassword("");
+      setNewPassword("");
+      setNewPasswordConfirm("");
       setIsEditing(false);
       Alert.alert("Sucesso", "Dados atualizados com sucesso.");
     } catch (err) {
@@ -112,34 +152,123 @@ export default function Profile() {
   const handleCancel = () => {
     setIsEditing(false);
     setEditEmail(email ?? "");
-    setEditPassword("");
+    setOldPassword("");
+    setNewPassword("");
+    setNewPasswordConfirm("");
   };
 
-  useEffect(() => {
-    if (!user) return;
+  const fetchUserData = useCallback(async () => {
+    if (!user || !accessToken) return;
 
-    const fetchUser = async () => {
-      try {
-        setLoading(true);
-        const res = await fetch(API_ENDPOINTS.USER(user.username));
-        const data = await res.json();
+    try {
+      setLoading(true);
+      const res = await fetch(API_ENDPOINTS.GET_USER(user.username), {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
 
-        if (res.ok) {
-          setEmail(data.email || "");
-          setEditEmail(data.email || "");
-          setUsername(data.username || user.username);
-        } else {
-          console.log("Erro ao carregar utilizador:", data);
-        }
-      } catch (err) {
-        console.log("Erro de rede ao carregar utilizador:", err);
-      } finally {
-        setLoading(false);
+      const data = await res.json();
+      console.log("GET_USER status:", res.status, data);
+
+      if (res.ok && data.success !== false && data.user) {
+        setEmail(data.user.email || "");
+        setEditEmail(data.user.email || "");
+        setUsername(data.user.username || user.username);
+        setMemberSince(formatDateDDMMYYYY(data.user.joined_date));
+        setError(null);
+      } else {
+        console.log("Erro ao carregar utilizador:", data);
+        setError(data.error || "Erro ao carregar dados do utilizador.");
       }
-    };
+    } catch (err) {
+      console.log("Erro de rede ao carregar utilizador:", err);
+      setError("Erro de rede ao carregar utilizador.");
+    } finally {
+      setLoading(false);
+    }
+  }, [user, accessToken]);
 
-    fetchUser();
-  }, [user]);
+  const fetchRecentReviews = useCallback(async () => {
+    if (!user || !accessToken) return;
+
+    try {
+      const res = await fetch(API_ENDPOINTS.GET_USER_REVIEWS(user.username), {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+
+      const data = await res.json();
+      console.log("GET_USER_REVIEWS (profile) status:", res.status, data);
+
+      if (!res.ok || data.success === false) {
+        console.log("Erro ao carregar reviews:", data);
+        return;
+      }
+
+      const reviews: UserReview[] = data.reviews || [];
+
+      const sorted = [...reviews].sort(
+        (a, b) =>
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      );
+
+      setRecentReviews(sorted.slice(0, 3));
+    } catch (err) {
+      console.log("Erro de rede ao carregar reviews:", err);
+    }
+  }, [user, accessToken]);
+
+  const fetchUserReviews = useCallback(async () => {
+    if (!user || !accessToken) return;
+
+    try {
+      const res = await fetch(API_ENDPOINTS.GET_USER_REVIEWS(user.username), {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+
+      const data = await res.json();
+      console.log("GET_USER_REVIEWS (Profile):", data);
+
+      if (!res.ok || data.success === false) {
+        console.log("Erro ao obter reviews:", data);
+        return;
+      }
+
+      const reviews: UserReview[] = data.reviews || [];
+      setAllReviews(reviews);
+
+      // Ordenar por data desc → pegar apenas 3
+      const sorted = [...reviews].sort(
+        (a, b) =>
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      );
+      setRecentReviews(sorted.slice(0, 3));
+    } catch (err) {
+      console.log("Erro de rede ao buscar reviews:", err);
+    }
+  }, [user, accessToken]);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchUserData();
+      fetchUserReviews();
+      return () => {};
+    }, [fetchUserData, fetchUserReviews])
+  );
+
+  const totalRatings = allReviews.length;
+
+  const averageRating =
+    totalRatings > 0
+      ? allReviews.reduce((sum, r) => sum + r.rating, 0) / totalRatings
+      : 0;
 
   if (!user) {
     return (
@@ -192,7 +321,7 @@ export default function Profile() {
               disabled={loading}
               variant="outline"
             >
-              Create Account
+              Criar Conta
             </Button>
           </View>
         </View>
@@ -278,28 +407,35 @@ export default function Profile() {
               </Text>
 
               <View style={styles.badgeRow}>
+                {/* Média de rating */}
                 <View
                   style={[
                     styles.badge,
                     { backgroundColor: badgeBg, borderColor: badgeBorder },
                   ]}
                 >
-                  <Ionicons name="heart" size={14} color={textMain} />
+                  <Ionicons name="star" size={14} color={textMain} />
                   <Text style={[styles.badgeText, { color: textMain }]}>
-                    3 Favoritos
+                    {totalRatings > 0
+                      ? `${averageRating.toFixed(1)}/10 média`
+                      : "Sem avaliações"}
                   </Text>
                 </View>
+
+                {/* Nº de ratings */}
                 <View
                   style={[
                     styles.badge,
                     { backgroundColor: badgeBg, borderColor: badgeBorder },
                   ]}
                 >
-                  <Ionicons name="eye" size={14} color={textMain} />
+                  <Ionicons name="list" size={14} color={textMain} />
                   <Text style={[styles.badgeText, { color: textMain }]}>
-                    3 Assistidos
+                    {totalRatings} {totalRatings === 1 ? "rating" : "ratings"}
                   </Text>
                 </View>
+
+                {/* Data Registro */}
                 <View
                   style={[
                     styles.badge,
@@ -308,7 +444,7 @@ export default function Profile() {
                 >
                   <Ionicons name="calendar" size={14} color={textMain} />
                   <Text style={[styles.badgeText, { color: textMain }]}>
-                    Membro desde 2024
+                    {memberSince ? `Membro desde ${memberSince}` : "Membro desde -"}
                   </Text>
                 </View>
               </View>
@@ -357,20 +493,15 @@ export default function Profile() {
               )}
             </View>
 
-            {/* Password */}
+            {/* Password atual (obrigatória para qualquer alteração) */}
             <View style={styles.infoBlock}>
               {isEditing ? (
                 <>
                   <Text style={[styles.infoLabel, { color: textMuted }]}>
-                    Nova Password
+                    Password atual
                   </Text>
-                  <Input
-                    placeholder="Deixe em branco para não alterar"
-                    value={editPassword}
-                    onChangeText={setEditPassword}
-                    secureTextEntry
-                    autoCapitalize="none"
-                  />
+                  <Input placeholder = "Introduza a sua password atual" value={oldPassword} onChangeText={setOldPassword} secureTextEntry autoCapitalize="none" 
+                />
                 </>
               ) : (
                 <>
@@ -378,11 +509,25 @@ export default function Profile() {
                     Password
                   </Text>
                   <Text style={[styles.infoValue, { color: textMain }]}>
-                    ********
+                    **********
                   </Text>
                 </>
               )}
             </View>
+
+            {/* Nova password + confirmação */}
+            {isEditing && (
+              <View style={styles.infoBlock}>
+                <Text style={[styles.infoLabel, { color: textMuted }]}>
+                  Nova password
+                </Text>
+                <Input placeholder="Deiexe em branco se não quiser alterar" value={newPassword} onChangeText={setNewPassword} secureTextEntry autoCapitalize="none" />
+                <Text style={[styles.infoLabel,{color: textMuted,marginTop:8},]}>
+                  Confirmar nova password
+                </Text>
+                <Input placeholder="Repita a nova password" value={newPasswordConfirm} onChangeText={setNewPasswordConfirm} secureTextEntry autoCapitalize="none"/>
+              </View>
+            )}
 
             {/* Botões de edição */}
             {isEditing ? (
@@ -432,28 +577,27 @@ export default function Profile() {
               Histórico Recente
             </Text>
             <Text style={[styles.cardSubtitle, { color: textMuted }]}>
-              Seus últimos filmes assistidos
+              Seus últimos filmes avaliados
             </Text>
 
-            <MovieHistoryItem
-              title="Thunder Strike"
-              timeAgo="Há 2 dias"
-              rating={4}
-            />
-            <MovieHistoryItem
-              title="Cyber Protocol"
-              timeAgo="Há 5 dias"
-              rating={5}
-            />
-            <MovieHistoryItem
-              title="Velocity"
-              timeAgo="Há 1 semana"
-              rating={3}
-            />
+            {recentReviews.length > 0 ? (
+              recentReviews.map((rev) => (
+                <MovieHistoryItem
+                  key={rev.id}
+                  title={rev.movie?.title ?? "Filme desconhecido"}
+                  timeAgo={formatTimeAgo(rev.created_at)}
+                  rating={mapRatingToStars(rev.rating)}
+                />
+              ))
+            ) : (
+              <Text style={[styles.infoValue, { color: textMuted }]}>
+                Ainda não avaliou qualquer filme.
+              </Text>
+            )}
           </View>
         </View>
 
-        {/* Estatísticas */}
+        {/* Estatísticas
         <View
           style={[
             styles.statsCard,
@@ -494,7 +638,7 @@ export default function Profile() {
               </Text>
             </View>
           </View>
-        </View>
+        </View> */}
       </ScrollView>
 
       {!isLargeScreen && (
@@ -509,6 +653,46 @@ export default function Profile() {
     </SafeAreaView>
   );
 }
+
+function formatTimeAgo(isoDate: string): string {
+  const date = new Date(isoDate);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+
+  if (diffMs < 0) return "Agora mesmo";
+
+  const diffMinutes = Math.floor(diffMs / 60000);
+  if (diffMinutes < 1) return "Agora mesmo";
+  if (diffMinutes < 60) return `Há ${diffMinutes} min`;
+
+  const diffHours = Math.floor(diffMinutes / 60);
+  if (diffHours < 24) return `Há ${diffHours} h`;
+
+  const diffDays = Math.floor(diffHours / 24);
+  if (diffDays === 1) return "Há 1 dia";
+  if (diffDays < 7) return `Há ${diffDays} dias`;
+
+  const diffWeeks = Math.floor(diffDays / 7);
+  if (diffWeeks === 1) return "Há 1 semana";
+
+  return `Há ${diffWeeks} semanas`;
+}
+
+function mapRatingToStars(rating: number): number {
+  const stars = Math.round(rating / 2);
+  return Math.min(Math.max(stars, 0), 5);
+}
+function formatDateDDMMYYYY(isoDate: string): string {
+  const d = new Date(isoDate);
+  if (Number.isNaN(d.getTime())) return ""; // fallback simples
+
+  const day = String(d.getDate()).padStart(2, "0");
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const year = d.getFullYear();
+
+  return `${day}-${month}-${year}`;
+}
+
 
 const styles = StyleSheet.create({
   safeArea: {

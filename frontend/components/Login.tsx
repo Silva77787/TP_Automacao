@@ -25,7 +25,7 @@ interface LoginProps {
 }
 
 export function Login({ visible, onClose, isLogin, setIsLogin }: LoginProps) {
-  const { setUser } = useAuth();
+  const { setUser, setTokens } = useAuth();
   const { isDark } = useTheme();
 
   const [email, setEmail] = useState("");
@@ -45,46 +45,80 @@ export function Login({ visible, onClose, isLogin, setIsLogin }: LoginProps) {
 
   const handleSubmit = async () => {
     if (isLogin) {
-      // LOGIN
+      // ========== LOGIN ==========
+      if (!email || !password) {
+        Alert.alert("Error", "Please fill in all fields");
+        return;
+      }
+
       setLoading(true);
       try {
         const response = await fetch(API_ENDPOINTS.LOGIN, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ identifier: email, password }),
+          body: JSON.stringify({
+            email, // Can be username OR email
+            password,
+          }),
         });
-        const data = await response.json();
-        if (response.ok) {
-          console.log("Login successful", data);
 
-          setUser({
+        const data = await response.json();
+
+        console.log("🔐 Login response:", data);
+
+        if (response.ok) {
+          console.log("✅ Login successful, saving tokens...");
+
+          //Save tokens FIRST
+          await setTokens(data.access, data.refresh);
+          console.log("✅ Tokens saved to AsyncStorage");
+
+          //Store user info
+          await setUser({
             username: data.username,
             email: data.email,
           });
+          console.log("✅ User saved to context");
 
           Alert.alert("Success", "Login successful!");
-
           onClose();
           setEmail("");
           setPassword("");
         } else {
-          Alert.alert("Error", data.error || "Login failed");
+          // Handle backend error response
+          const errorMessage =
+            data.errors?.error?.[0] || data.error || "Login failed";
+          console.error("❌ Login error:", errorMessage);
+          Alert.alert("Error", errorMessage);
         }
-      } catch (error) {
+      } catch (error: any) {
+        console.error("❌ Login network error:", error);
         Alert.alert("Error", "Network error. Try again later.");
       } finally {
         setLoading(false);
       }
     } else {
-      // REGISTER
+      // ========== REGISTER ==========
+      if (!name || !email || !password) {
+        Alert.alert("Error", "Please fill in all fields");
+        return;
+      }
+
       setLoading(true);
       try {
         const response = await fetch(API_ENDPOINTS.REGISTER, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ username: name, email, password }),
+          body: JSON.stringify({
+            username: name,
+            email,
+            password,
+            password_confirm: password,
+          }),
         });
+
         const data = await response.json();
+
         if (response.ok) {
           Alert.alert(
             "Success",
@@ -92,10 +126,19 @@ export function Login({ visible, onClose, isLogin, setIsLogin }: LoginProps) {
           );
           setIsLogin(true);
           setName("");
+          setEmail("");
+          setPassword("");
         } else {
-          Alert.alert("Error", data.error || "Registration failed");
+          const errorMessage =
+            Object.values(data.errors || {})
+              .flat()
+              .join(", ") ||
+            data.message ||
+            "Registration failed";
+          Alert.alert("Error", errorMessage);
         }
-      } catch (error) {
+      } catch (error: any) {
+        console.error("❌ Registration error:", error);
         Alert.alert("Error", "Network error. Try again later.");
       } finally {
         setLoading(false);
@@ -118,7 +161,7 @@ export function Login({ visible, onClose, isLogin, setIsLogin }: LoginProps) {
       onRequestClose={handleClose}
     >
       <View style={styles.overlay}>
-        {/* BACKDROP que fecha ao clicar fora */}
+        {/* BACKDROP closes modal when clicked */}
         <Pressable style={styles.backdrop} onPress={handleClose} />
 
         <View
@@ -137,7 +180,10 @@ export function Login({ visible, onClose, isLogin, setIsLogin }: LoginProps) {
             showsVerticalScrollIndicator={false}
           >
             <View style={styles.header}>
-              <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
+              <TouchableOpacity
+                onPress={handleClose}
+                style={styles.closeButton}
+              >
                 <Ionicons name="close" size={18} color={textPrimary} />
               </TouchableOpacity>
             </View>
@@ -162,13 +208,14 @@ export function Login({ visible, onClose, isLogin, setIsLogin }: LoginProps) {
               {!isLogin && (
                 <View style={styles.inputContainer}>
                   <Text style={[styles.label, { color: textPrimary }]}>
-                    Nome completo
+                    Username
                   </Text>
                   <Input
-                    placeholder="Seu nome"
+                    placeholder="Seu nome de usuário"
                     value={name}
                     onChangeText={setName}
-                    autoCapitalize="words"
+                    autoCapitalize="none"
+                    autoCorrect={false}
                   />
                 </View>
               )}
@@ -189,7 +236,7 @@ export function Login({ visible, onClose, isLogin, setIsLogin }: LoginProps) {
 
               <View style={styles.inputContainer}>
                 <Text style={[styles.label, { color: textPrimary }]}>
-                  Senha
+                  Password
                 </Text>
                 <Input
                   placeholder="••••••••"
@@ -199,26 +246,6 @@ export function Login({ visible, onClose, isLogin, setIsLogin }: LoginProps) {
                   autoCapitalize="none"
                 />
               </View>
-
-              {/* {isLogin && (
-                <View style={styles.options}>
-                  <View style={styles.checkboxContainer}>
-                    <Ionicons
-                      name="square-outline"
-                      size={20}
-                      color={textSecondary}
-                    />
-                    <Text style={[styles.checkboxText, { color: textSecondary }]}>
-                      Lembrar de mim
-                    </Text>
-                  </View>
-                  <TouchableOpacity>
-                    <Text style={[styles.linkText, { color: textPrimary }]}>
-                      Esqueceu a senha?
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-              )} */}
 
               <Button
                 onPress={handleSubmit}
