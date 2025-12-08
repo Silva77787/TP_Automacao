@@ -582,11 +582,4 @@ def collaborative_recommendations(request):
         'description': movie.description
     } for movie in recommendations]
     
-    return JsonResponse({'recommendations': movies_data}, status=200)          
-        return Response(
-            {
-                'success': False,
-                'error': 'User not found'
-            },
-            status=status.HTTP_404_NOT_FOUND
-        )
+    return JsonResponse({'recommendations': movies_data}, status=200)
