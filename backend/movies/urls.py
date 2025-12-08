@@ -1,7 +1,16 @@
 from django.urls import path
 from .views import (
-    register_user, rate_movie, get_user, 
-    update_user, movie_catalog, get_movie_details, get_user_reviews
+    register_user,
+    login_user,
+    rate_movie,
+    get_user,
+    update_user,
+    movie_catalog,
+    get_movie_details,
+    get_user_reviews,
+    popular_recommendations,
+    for_you_recommendations,
+    collaborative_recommendations
 )
 from .authentication import CustomTokenObtainPairView
 from rest_framework_simplejwt.views import TokenRefreshView
@@ -23,4 +32,9 @@ urlpatterns = [
 
     # Review endpoints
     path('movies/rate/', rate_movie, name='rate_movie'),
+    
+    # Recommendation endpoints
+    path('recommendations/popular/', popular_recommendations, name='popular_recommendations'),
+    path('recommendations/for-you/', for_you_recommendations, name='for_you_recommendations'),
+    path('recommendations/collaborative/', collaborative_recommendations, name='collaborative_recommendations'),
 ]
