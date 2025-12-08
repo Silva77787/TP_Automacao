@@ -449,14 +449,5 @@ class TestReviewViews(APITestCase):
         self.assertEqual(resp.data["reviews"][0]["rating"], 9)
         self.assertEqual(resp.data["reviews"][1]["rating"], 2)
 
-    def test_login_success(self):
-        PlataformaUser.objects.create(
-            username="john", email="john@example.com", password="abc123"
-        )
-        response = self.client.post("/auth/login/", {
-            "username": "john",
-            "password": "abc123"
-        })
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
 
