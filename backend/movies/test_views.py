@@ -19,7 +19,7 @@ class TestAuthViews(APITestCase):
 
         self.user = PlataformaUser.objects.create(
             username="john",
-            password="123",
+            password=make_password("123"),
             email="john@mail.com",
         )
 
@@ -62,21 +62,6 @@ class TestAuthViews(APITestCase):
     def test_register_missing_fields(self):
         response = self.client.post(self.register_url, {})
         self.assertEqual(response.status_code, 400)
-
-#    def test_login_with_username(self):
-#        response = self.client.post(self.login_url, {
-#            "identifier": "john",
-#            "password": "123"
-#        })
-#        self.assertEqual(response.status_code, 200)
-#        self.assertIn("access", response.data)
-
-#    def test_login_with_email(self):
-#        response = self.client.post(self.login_url, {
-#            "identifier": "john@mail.com",
-#            "password": "123"
-#        })
-#        self.assertEqual(response.status_code, 200)
 
     def test_login_wrong_password(self):
         response = self.client.post(self.login_url, {
@@ -264,5 +249,214 @@ class TestMovieViews(APITestCase):
         resp = self.client.get(url)
         self.assertIsNone(resp.data["user_rating"])
         self.assertEqual(resp.data["user_description"], "")
+
+
+# ============================================================
+# ⭐ REVIEW ENDPOINTS
+# ============================================================
+
+class TestReviewViews(APITestCase):
+
+    def setUp(self):
+        self.client = APIClient()
+
+        # Create users
+        self.user = PlataformaUser.objects.create(
+            username="john",
+            password=make_password("123"),
+            email="john@mail.com"
+        )
+
+        self.other = PlataformaUser.objects.create(
+            username="jane",
+            password=make_password("123"),
+            email="jane@mail.com"
+        )
+
+        # Login to obtain token
+        token_response = self.client.post(reverse("token_obtain_pair"), {
+            "email": "john@mail.com",
+            "password": "123"
+        })
+
+        self.assertEqual(token_response.status_code, 200)
+        self.token = token_response.data["access"]
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {self.token}")
+
+        # Create movie
+        self.movie = Movie.objects.create(
+            title="Inception",
+            description="Dream within a dream",
+            release_date=date(2010, 7, 16),
+            rating=0,
+            total_ratings=0,
+        )
+
+        # Create movie
+        self.movie2 = Movie.objects.create(
+            title="Inception2",
+            description="Dream within a dream2",
+            release_date=date(2010, 7, 16),
+            rating=0,
+            total_ratings=0,
+        )
+
+    # ------------------------------------------------------------
+    # ⭐ RATE MOVIE
+    # ------------------------------------------------------------
+
+    def test_create_new_review(self):
+        url = reverse("rate_movie")
+        resp = self.client.post(url, {
+            "movie_id": self.movie.id,
+            "rating": 8,
+            "description": "Muito bom!"
+        }, format="json")
+
+        self.assertEqual(resp.status_code, 201)
+        self.assertTrue(resp.data["success"])
+        self.assertEqual(resp.data["movie_total_ratings"], 1)
+        self.assertEqual(resp.data["movie_average_rating"], 8.0)
+
+    def test_update_existing_review(self):
+        # First create review
+        Review.objects.create(user=self.user, movie=self.movie, rating=5)
+
+        url = reverse("rate_movie")
+        resp = self.client.post(url, {
+            "movie_id": self.movie.id,
+            "rating": 9,
+        }, format="json")
+
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.data["message"], "Review updated")
+        self.assertEqual(resp.data["movie_average_rating"], 9.0)
+
+    def test_rating_missing(self):
+        url = reverse("rate_movie")
+        resp = self.client.post(url, {"movie_id": self.movie.id})
+        self.assertEqual(resp.status_code, 400)
+
+    def test_movie_id_missing(self):
+        url = reverse("rate_movie")
+        resp = self.client.post(url, {"rating": 5})
+        self.assertEqual(resp.status_code, 400)
+
+    def test_rating_not_numeric(self):
+        url = reverse("rate_movie")
+        resp = self.client.post(url, {
+            "movie_id": self.movie.id,
+            "rating": "abc"
+        })
+        self.assertEqual(resp.status_code, 400)
+
+    def test_rating_out_of_range_low(self):
+        url = reverse("rate_movie")
+        resp = self.client.post(url, {
+            "movie_id": self.movie.id,
+            "rating": 0
+        })
+        self.assertEqual(resp.status_code, 400)
+
+    def test_rating_out_of_range_high(self):
+        url = reverse("rate_movie")
+        resp = self.client.post(url, {
+            "movie_id": self.movie.id,
+            "rating": 11
+        })
+        self.assertEqual(resp.status_code, 400)
+
+    def test_movie_not_found(self):
+        url = reverse("rate_movie")
+        resp = self.client.post(url, {
+            "movie_id": 9999,
+            "rating": 7
+        })
+        self.assertEqual(resp.status_code, 404)
+
+    def test_rate_movie_unauthenticated(self):
+        self.client.credentials()
+        url = reverse("rate_movie")
+        resp = self.client.post(url, {
+            "movie_id": self.movie.id,
+            "rating": 7
+        })
+        self.assertEqual(resp.status_code, 401)
+
+    def test_multiple_reviews_update_average(self):
+        # First review
+        Review.objects.create(user=self.user, movie=self.movie, rating=6)
+
+        # Second user review
+        Review.objects.create(user=self.other, movie=self.movie, rating=4)
+
+        url = reverse("rate_movie")
+        resp = self.client.post(url, {
+            "movie_id": self.movie.id,
+            "rating": 10
+        })
+
+        # New average should be (10 + 4) / 2 = 7
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.data["movie_average_rating"], 7.0)
+
+
+
+# ------------------------------------------------------------
+# ⭐ GET USER REVIEWS
+# ------------------------------------------------------------
+
+    def test_get_user_reviews_success(self):
+        Review.objects.create(user=self.user, movie=self.movie, rating=9)
+
+        url = reverse("get_user_reviews", kwargs={"username": "john"})
+        resp = self.client.get(url)
+
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.data["count"], 1)
+        self.assertEqual(resp.data["reviews"][0]["rating"], 9)
+
+    def test_get_user_reviews_empty(self):
+        url = reverse("get_user_reviews", kwargs={"username": "john"})
+        resp = self.client.get(url)
+
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.data["count"], 0)
+        self.assertEqual(len(resp.data["reviews"]), 0)
+
+    def test_get_user_reviews_user_not_found(self):
+        url = reverse("get_user_reviews", kwargs={"username": "unknown"})
+        resp = self.client.get(url)
+
+        self.assertEqual(resp.status_code, 404)
+
+    def test_get_user_reviews_unauthenticated(self):
+        self.client.credentials()
+        url = reverse("get_user_reviews", kwargs={"username": "john"})
+        resp = self.client.get(url)
+
+        self.assertEqual(resp.status_code, 401)
+    
+    def test_get_multiple_user_reviews_success(self):
+        Review.objects.create(user=self.user, movie=self.movie, rating=9)
+        Review.objects.create(user=self.user, movie=self.movie2, rating=2)
+
+        url = reverse("get_user_reviews", kwargs={"username": "john"})
+        resp = self.client.get(url)
+
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.data["count"], 2)
+        self.assertEqual(resp.data["reviews"][0]["rating"], 9)
+        self.assertEqual(resp.data["reviews"][1]["rating"], 2)
+
+    def test_login_success(self):
+        PlataformaUser.objects.create(
+            username="john", email="john@example.com", password="abc123"
+        )
+        response = self.client.post("/auth/login/", {
+            "username": "john",
+            "password": "abc123"
+        })
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
 
