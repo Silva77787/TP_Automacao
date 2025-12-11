@@ -12,6 +12,7 @@ interface RecommendationRaw {
   total_ratings: number;
   release_date: string;
   description: string;
+  image?: string | null;
 }
 
 interface RecommendationResponse {
@@ -125,7 +126,7 @@ export function useRecommendations(
         release_date: m.release_date ?? "1900-01-01",
         rating: m.rating ?? 0,
         total_ratings: m.total_ratings ?? 0,
-        // estes vêm vazios aqui, mas o MovieDetails depois vai buscar info completa
+        image: m.image ?? null,
         genres: [],
         directors: [],
       }));
@@ -148,7 +149,6 @@ export function useRecommendations(
   ]);
 
   useEffect(() => {
-    // Dispara quando o tipo/parametros mudam
     fetchRecommendations();
   }, [fetchRecommendations]);
 

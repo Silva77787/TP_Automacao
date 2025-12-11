@@ -6,17 +6,15 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import SideMenu from "@/components/SideMenu";
 import { Button } from "@/components/ui/button";
 
-import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/context/ThemeContext";
 
-import { useMovies } from "@/hooks/useMovies";
 import { useRecommendations } from "@/hooks/useRecommendations";
 
 
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import React, { useMemo, useState } from "react";
+import React, { useState } from "react";
 import {
   ActivityIndicator,
   ScrollView,
@@ -67,6 +65,7 @@ export default function RecommendationsScreen() {
     loading,
     error,
     message,
+    refetch,
   } = useRecommendations(mode, {
     limit,
     days: 60, 
@@ -318,6 +317,7 @@ export default function RecommendationsScreen() {
           onClose={() => {
             setDetailsVisible(false);
             setSelectedMovieId(null);
+            refetch();
           }}
         />
 

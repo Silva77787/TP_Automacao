@@ -326,6 +326,7 @@ def _serialize_popular_movies(movies):
             'total_ratings': total_ratings or 0,
             'release_date': str(movie.release_date),
             'description': movie.description,
+            'image': movie.image,
         })
     return movies_data
 
