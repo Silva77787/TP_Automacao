@@ -59,7 +59,7 @@ export function MovieCard({
             style={styles.image}
             contentFit="cover"
             transition={200}
-            placeholder="L2~BS0os00oy00_3t757R%hh00"
+            blurhash="L2~BS0os00oy00_3t757R%hh00"
             cachePolicy="disk"
           />
           <View style={styles.overlay}>
