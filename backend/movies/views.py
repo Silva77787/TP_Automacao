@@ -285,142 +285,213 @@ def get_user_reviews(request, username):
 
 
 # Recommendation endpoints
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def popular_recommendations(request):
     """Filmes populares recentes"""
-    days = int(request.GET.get('days', 30))
-    limit = int(request.GET.get('limit', 20))
+    try:
+        days = int(request.GET.get('days', 30))
+        limit = int(request.GET.get('limit', 20))
+        
+        date_threshold = datetime.now() - timedelta(days=days)
+        
+        popular_movies = Movie.objects.filter(
+            review__created_at__gte=date_threshold
+        ).annotate(
+            recent_rating=Avg('review__rating'),
+            recent_count=Count('review')
+        ).filter(
+            recent_count__gte=5,
+            recent_rating__gte=4.0
+        ).order_by('-recent_rating', '-recent_count')[:limit]
+        
+        movies_data = [{
+            'id': movie.id,
+            'title': movie.title,
+            'rating': float(movie.recent_rating),
+            'total_ratings': movie.recent_count,
+            'release_date': str(movie.release_date),
+            'description': movie.description
+        } for movie in popular_movies]
+        
+        return Response({
+            'success': True,
+            'message': 'Recomendações populares carregadas com sucesso',
+            'count': len(movies_data),
+            'recommendations': movies_data
+        }, status=status.HTTP_200_OK)
     
-    date_threshold = datetime.now() - timedelta(days=days)
-    
-    popular_movies = Movie.objects.filter(
-        review__created_at__gte=date_threshold
-    ).annotate(
-        recent_rating=Avg('review__rating'),
-        recent_count=Count('review')
-    ).filter(
-        recent_count__gte=5,
-        recent_rating__gte=4.0
-    ).order_by('-recent_rating', '-recent_count')[:limit]
-    
-    movies_data = [{
-        'id': movie.id,
-        'title': movie.title,
-        'rating': float(movie.recent_rating),
-        'total_ratings': movie.recent_count,
-        'release_date': movie.release_date,
-        'description': movie.description
-    } for movie in popular_movies]
-    
-    return JsonResponse({'recommendations': movies_data}, status=200)
+    except ValueError:
+        return Response({
+            'success': False,
+            'error': 'Invalid parameters: days and limit must be integers'
+        }, status=status.HTTP_400_BAD_REQUEST)
+    except Exception as e:
+        return Response({
+            'success': False,
+            'error': str(e)
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def for_you_recommendations(request):
     """Recomendações baseadas nos géneros favoritos do user"""
-    username = request.GET.get('username')
-    limit = int(request.GET.get('limit', 20))
-    
-    if not username:
-        return JsonResponse({'error': 'Username é obrigatório'}, status=400)
-    
     try:
-        user = PlataformaUser.objects.get(username=username)
-    except PlataformaUser.DoesNotExist:
-        return JsonResponse({'error': 'User not found'}, status=404)
-    
-    liked_movies = Review.objects.filter(
-        user=user,
-        rating__gte=4.0
-    ).values_list('movie_id', flat=True)
-    
-    if not liked_movies:
-        return popular_recommendations(request)
-    
-    favorite_genre_ids = Movie.objects.filter(
-        id__in=liked_movies
-    ).values('genremovie__genre_id').annotate(
-        count=Count('id')
-    ).order_by('-count')[:3]
-    
-    genre_ids = [g['genremovie__genre_id'] for g in favorite_genre_ids if g['genremovie__genre_id']]
-    
-    if not genre_ids:
-        return popular_recommendations(request)
-    
-    recommendations = Movie.objects.filter(
-        genremovie__genre_id__in=genre_ids
-    ).exclude(
-        id__in=liked_movies
-    ).filter(
-        rating__gte=4.0
-    ).distinct().order_by('-rating')[:limit]
+        username = request.GET.get('username')
+        limit = int(request.GET.get('limit', 20))
+        
+        if not username:
+            return Response({
+                'success': False,
+                'error': 'Username é obrigatório'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            user = PlataformaUser.objects.get(username=username)
+        except PlataformaUser.DoesNotExist:
+            return Response({
+                'success': False,
+                'error': 'User not found'
+            }, status=status.HTTP_404_NOT_FOUND)
+        
+        liked_movies = Review.objects.filter(
+            user=user,
+            rating__gte=4.0
+        ).values_list('movie_id', flat=True)
+        
+        # Se o user não tem filmes que gostou, retorna populares
+        if not liked_movies:
+            return popular_recommendations(request)
+        
+        favorite_genre_ids = Movie.objects.filter(
+            id__in=liked_movies
+        ).values('genres__id').annotate(
+            count=Count('id')
+        ).order_by('-count')[:3]
+        
+        genre_ids = [g['genres__id'] for g in favorite_genre_ids if g['genres__id']]
+        
+        if not genre_ids:
+            return popular_recommendations(request)
+        
+        recommendations = Movie.objects.filter(
+            genres__id__in=genre_ids
+        ).exclude(
+            id__in=liked_movies
+        ).filter(
+            rating__gte=4.0
+        ).distinct().order_by('-rating')[:limit]
 
-    if recommendations.count() == 0:
-        return popular_recommendations(request)
+        if recommendations.count() == 0:
+            return popular_recommendations(request)
+        
+        movies_data = [{
+            'id': movie.id,
+            'title': movie.title,
+            'rating': float(movie.rating),
+            'total_ratings': movie.total_ratings,
+            'release_date': str(movie.release_date),
+            'description': movie.description
+        } for movie in recommendations]
+        
+        return Response({
+            'success': True,
+            'message': 'Recomendações personalizadas carregadas com sucesso',
+            'count': len(movies_data),
+            'recommendations': movies_data
+        }, status=status.HTTP_200_OK)
     
-    movies_data = [{
-        'id': movie.id,
-        'title': movie.title,
-        'rating': float(movie.rating),
-        'total_ratings': movie.total_ratings,
-        'release_date': movie.release_date,
-        'description': movie.description
-    } for movie in recommendations]
-    
-    return JsonResponse({'recommendations': movies_data}, status=200)
+    except ValueError:
+        return Response({
+            'success': False,
+            'error': 'Invalid parameters: limit must be an integer'
+        }, status=status.HTTP_400_BAD_REQUEST)
+    except Exception as e:
+        return Response({
+            'success': False,
+            'error': str(e)
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def collaborative_recommendations(request):
     """Recomendações baseadas em users com gostos similares"""
-    username = request.GET.get('username')
-    days = int(request.GET.get('days', 60))
-    limit = int(request.GET.get('limit', 20))
-    
-    if not username:
-        return JsonResponse({'error': 'Username é obrigatório'}, status=400)
-    
     try:
-        user = PlataformaUser.objects.get(username=username)
-    except PlataformaUser.DoesNotExist:
-        return JsonResponse({'error': 'User not found'}, status=404)
+        username = request.GET.get('username')
+        days = int(request.GET.get('days', 60))
+        limit = int(request.GET.get('limit', 20))
+        
+        if not username:
+            return Response({
+                'success': False,
+                'error': 'Username é obrigatório'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            user = PlataformaUser.objects.get(username=username)
+        except PlataformaUser.DoesNotExist:
+            return Response({
+                'success': False,
+                'error': 'User not found'
+            }, status=status.HTTP_404_NOT_FOUND)
+        
+        user_liked_reviews = Review.objects.filter(user=user, rating__gte=4.0)
+        user_liked_movie_ids = list(user_liked_reviews.values_list('movie_id', flat=True))
+        
+        all_user_movie_ids = list(Review.objects.filter(user=user).values_list('movie_id', flat=True))
+        
+        # Se o user não tem suficientes ratings, retorna populares
+        if len(user_liked_movie_ids) < 3:
+            return popular_recommendations(request)
+        
+        similar_users = PlataformaUser.objects.filter(
+            review__movie_id__in=user_liked_movie_ids,
+            review__rating__gte=4.0
+        ).exclude(
+            username=username
+        ).annotate(
+            common_liked_movies=Count('review', distinct=True)
+        ).filter(
+            common_liked_movies__gte=3
+        ).order_by('-common_liked_movies')[:10]
+        
+        date_threshold = datetime.now() - timedelta(days=days)
+        
+        recommendations = Movie.objects.filter(
+            review__user__in=similar_users,
+            review__rating__gte=4.0,
+            review__created_at__gte=date_threshold
+        ).exclude(
+            id__in=all_user_movie_ids
+        ).annotate(
+            likers_count=Count('review', distinct=True)
+        ).order_by('-likers_count', '-rating')[:limit]
+        
+        movies_data = [{
+            'id': movie.id,
+            'title': movie.title,
+            'rating': float(movie.rating),
+            'total_ratings': movie.total_ratings,
+            'release_date': str(movie.release_date),
+            'description': movie.description
+        } for movie in recommendations]
+        
+        return Response({
+            'success': True,
+            'message': 'Recomendações colaborativas carregadas com sucesso',
+            'count': len(movies_data),
+            'recommendations': movies_data
+        }, status=status.HTTP_200_OK)
     
-    user_liked_reviews = Review.objects.filter(user=user, rating__gte=4.0)
-    user_liked_movie_ids = list(user_liked_reviews.values_list('movie_id', flat=True))
-    
-    all_user_movie_ids = list(Review.objects.filter(user=user).values_list('movie_id', flat=True))
-    
-    if len(user_liked_movie_ids) < 3:
-        return popular_recommendations(request)
-    
-    similar_users = PlataformaUser.objects.filter(
-        review__movie_id__in=user_liked_movie_ids,
-        review__rating__gte=4.0
-    ).exclude(
-        username=username
-    ).annotate(
-        common_liked_movies=Count('review', distinct=True)
-    ).filter(
-        common_liked_movies__gte=3
-    ).order_by('-common_liked_movies')[:10]
-    
-    date_threshold = datetime.now() - timedelta(days=days)
-    
-    recommendations = Movie.objects.filter(
-        review__user__in=similar_users,
-        review__rating__gte=4.0,
-        review__created_at__gte=date_threshold
-    ).exclude(
-        id__in=all_user_movie_ids
-    ).annotate(
-        likers_count=Count('review', distinct=True)
-    ).order_by('-likers_count', '-rating')[:limit]
-    
-    movies_data = [{
-        'id': movie.id,
-        'title': movie.title,
-        'rating': float(movie.rating),
-        'total_ratings': movie.total_ratings,
-        'release_date': movie.release_date,
-        'description': movie.description
-    } for movie in recommendations]
-    
-    return JsonResponse({'recommendations': movies_data}, status=200)
+    except ValueError:
+        return Response({
+            'success': False,
+            'error': 'Invalid parameters: days and limit must be integers'
+        }, status=status.HTTP_400_BAD_REQUEST)
+    except Exception as e:
+        return Response({
+            'success': False,
+            'error': str(e)
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
