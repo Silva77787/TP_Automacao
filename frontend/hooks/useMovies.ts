@@ -11,6 +11,7 @@ export interface Movie {
   total_ratings: number;
   genres: { id: number; gerne_name: string }[];
   directors: { id: number; name: string; biography: string }[];
+  image?: string | null;
   user_rating?: number | null;
   user_description?: string;
 }

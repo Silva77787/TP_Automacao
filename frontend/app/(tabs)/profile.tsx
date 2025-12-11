@@ -431,7 +431,7 @@ export default function Profile() {
         </Text>
       )}
 
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {/* Profile card */}
         <View
           style={[

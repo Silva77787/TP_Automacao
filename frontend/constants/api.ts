@@ -18,5 +18,10 @@ export const API_ENDPOINTS = {
     `${API_BASE_URL}/user/${username}/update/`,
   GET_USER_REVIEWS: (username: string) =>
     `${API_BASE_URL}/user/${username}/reviews/`,
+
+  // Recommendations
+  REC_POPULAR: `${API_BASE_URL}/recommendations/popular/`,
+  REC_FOR_YOU: `${API_BASE_URL}/recommendations/for-you/`,
+  REC_COLLAB: `${API_BASE_URL}/recommendations/collaborative/`,
 };
 
