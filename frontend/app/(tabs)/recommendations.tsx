@@ -5,9 +5,14 @@ import { MovieDetailsWrapper } from "@/components/MovieDetailsWrapper";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import SideMenu from "@/components/SideMenu";
 import { Button } from "@/components/ui/button";
+
 import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/context/ThemeContext";
+
 import { useMovies } from "@/hooks/useMovies";
+import { useRecommendations } from "@/hooks/useRecommendations";
+
+
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
@@ -43,7 +48,6 @@ export default function RecommendationsScreen() {
     (width - horizontalPadding * 2 - gap * (numColumns - 1)) / numColumns;
 
   const router = useRouter();
-  const { movies, loading, error } = useMovies();
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
@@ -51,15 +55,27 @@ export default function RecommendationsScreen() {
   const [selectedMovieId, setSelectedMovieId] = useState<number | null>(null);
   const [detailsVisible, setDetailsVisible] = useState(false);
 
+  const [mode, setMode] = useState<"forYou" | "popular" | "collaborative">(
+    "forYou"
+  );
+
+  const rows = 4;
+  const limit = numColumns * rows;
+
+  const {
+    movies: recommendedMovies,
+    loading,
+    error,
+    message,
+  } = useRecommendations(mode, {
+    limit,
+    days: 60, 
+  });
+
   const bgScreen = isDark ? "#151718" : "#F3F4F6";
   const textMain = isDark ? "#f9fafb" : "#020617";
   const textMuted = isDark ? "#9ca3af" : "#6b7280";
   const notLoggedIcon = isDark ? "#e5e7eb" : "#1f2022";
-
-  const recommendedMovies = useMemo(() => {
-    if (!movies || movies.length === 0) return [];
-    return movies.slice(0, 10);
-  }, [movies]);
 
   return (
     <ProtectedRoute
@@ -147,6 +163,84 @@ export default function RecommendationsScreen() {
           }}
         />
 
+        {/* Selector de modo */}
+        <View
+          style={{
+            paddingHorizontal: 16,
+            paddingTop: 12,
+            paddingBottom: 4,
+          }}
+        >
+          <Text
+            style={{
+              fontSize: 18,
+              fontWeight: "600",
+              marginBottom: 8,
+              color: textMain,
+            }}
+          >
+            Recomendações
+          </Text>
+          <Text
+            style={{
+              fontSize: 13,
+              color: textMuted,
+              marginBottom: 12,
+            }}
+          >
+            {mode === "forYou" &&
+              "Baseadas nos seus géneros e filmes bem avaliados."}
+            {mode === "popular" &&
+              "Filmes populares recentes com boas avaliações."}
+            {mode === "collaborative" &&
+              "Utilizadores com gostos semelhantes também gostaram destes filmes."}
+          </Text>
+
+          <View
+            style={{
+              flexDirection: "row",
+              gap: 8,
+              marginBottom: 4,
+            }}
+          >
+            <Button
+              variant={mode === "forYou" ? "default" : "secondary"}
+              size="sm"
+              onPress={() => setMode("forYou")}
+              style={{ flex: 1 }}
+            >
+              Para si
+            </Button>
+            <Button
+              variant={mode === "collaborative" ? "default" : "secondary"}
+              size="sm"
+              onPress={() => setMode("collaborative")}
+              style={{ flex: 1 }}
+            >
+              Colaborativas
+            </Button>
+            <Button
+              variant={mode === "popular" ? "default" : "secondary"}
+              size="sm"
+              onPress={() => setMode("popular")}
+              style={{ flex: 1 }}
+            >
+              Populares
+            </Button>
+          </View>
+          {message && !loading && !error && (
+            <Text
+              style={{
+                fontSize: 11,
+                color: textMuted,
+                marginTop: 2,
+              }}
+            >
+              {message}
+            </Text>
+          )}
+        </View>
+
         {loading ? (
           <View style={styles.emptyContainer}>
             <ActivityIndicator size="large" color={textMuted} />
@@ -180,7 +274,8 @@ export default function RecommendationsScreen() {
               Nenhuma recomendação disponível
             </Text>
             <Text style={[styles.emptyText, { color: textMuted }]}>
-              Explore o catálogo e avalie filmes para melhorar as recomendações.
+              Explore o catálogo e avalie filmes para melhorar as
+              recomendações.
             </Text>
             <Button style={{ marginTop: 16 }} onPress={() => router.push("/")}>
               Explorar filmes
@@ -192,26 +287,7 @@ export default function RecommendationsScreen() {
             contentContainerStyle={{ paddingBottom: 16 }}
             showsVerticalScrollIndicator={false}
           >
-            <View style={styles.moviesSection}>
-              <View style={styles.sectionHeader}>
-                <Text
-                  style={[
-                    styles.sectionTitle,
-                    isDark && styles.sectionTitleDark,
-                  ]}
-                >
-                  Recomendações
-                </Text>
-                <Text
-                  style={[
-                    styles.sectionSubtitle,
-                    isDark && styles.sectionSubtitleDark,
-                  ]}
-                >
-                  {recommendedMovies.length} filmes recomendados
-                </Text>
-              </View>
-
+            <View style={[styles.moviesSection, { paddingHorizontal: 16 }]}>
               <View style={styles.moviesGrid}>
                 {recommendedMovies.map((movie, index) => (
                   <View

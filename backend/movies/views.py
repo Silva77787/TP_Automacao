@@ -283,6 +283,52 @@ def get_user_reviews(request, username):
             'error': 'User not found'
         }, status=status.HTTP_404_NOT_FOUND)
 
+from datetime import datetime, timedelta
+from django.db.models import Avg, Count
+
+def _get_popular_movies(days: int = 30, limit: int = 20):
+    """
+    Devolve queryset de filmes populares recentes.
+    Não devolve Response, só a query.
+    """
+    date_threshold = datetime.now() - timedelta(days=days)
+
+    return Movie.objects.filter(
+        review__created_at__gte=date_threshold
+    ).annotate(
+        recent_rating=Avg('review__rating'),
+        recent_count=Count('review')
+    ).filter(
+        recent_count__gte=2,
+        recent_rating__gte=4.0
+    ).order_by('-recent_rating', '-recent_count')[:limit]
+
+
+def _serialize_popular_movies(movies):
+    """
+    Converte filmes populares no formato da API.
+    Usa os campos anotados recent_rating / recent_count se existirem.
+    """
+    movies_data = []
+    for movie in movies:
+        rating = getattr(movie, "recent_rating", None)
+        if rating is None:
+            rating = getattr(movie, "rating", 0)
+
+        total_ratings = getattr(movie, "recent_count", None)
+        if total_ratings is None:
+            total_ratings = getattr(movie, "total_ratings", 0)
+
+        movies_data.append({
+            'id': movie.id,
+            'title': movie.title,
+            'rating': float(rating or 0),
+            'total_ratings': total_ratings or 0,
+            'release_date': str(movie.release_date),
+            'description': movie.description,
+        })
+    return movies_data
+
 
 # Recommendation endpoints
 @api_view(['GET'])
@@ -292,35 +338,17 @@ def popular_recommendations(request):
     try:
         days = int(request.GET.get('days', 30))
         limit = int(request.GET.get('limit', 20))
-        
-        date_threshold = datetime.now() - timedelta(days=days)
-        
-        popular_movies = Movie.objects.filter(
-            review__created_at__gte=date_threshold
-        ).annotate(
-            recent_rating=Avg('review__rating'),
-            recent_count=Count('review')
-        ).filter(
-            recent_count__gte=5,
-            recent_rating__gte=4.0
-        ).order_by('-recent_rating', '-recent_count')[:limit]
-        
-        movies_data = [{
-            'id': movie.id,
-            'title': movie.title,
-            'rating': float(movie.recent_rating),
-            'total_ratings': movie.recent_count,
-            'release_date': str(movie.release_date),
-            'description': movie.description
-        } for movie in popular_movies]
-        
+
+        popular_movies = _get_popular_movies(days=days, limit=limit)
+        movies_data = _serialize_popular_movies(popular_movies)
+
         return Response({
             'success': True,
             'message': 'Recomendações populares carregadas com sucesso',
             'count': len(movies_data),
             'recommendations': movies_data
         }, status=status.HTTP_200_OK)
-    
+
     except ValueError:
         return Response({
             'success': False,
@@ -331,6 +359,7 @@ def popular_recommendations(request):
             'success': False,
             'error': str(e)
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 
 @api_view(['GET'])
@@ -362,7 +391,19 @@ def for_you_recommendations(request):
         
         # Se o user não tem filmes que gostou, retorna populares
         if not liked_movies:
-            return popular_recommendations(request)
+            days = int(request.GET.get('days', 30))
+            limit = int(request.GET.get('limit', 20))
+
+            popular_movies = _get_popular_movies(days=days, limit=limit)
+            movies_data = _serialize_popular_movies(popular_movies)
+
+            return Response({
+                'success': True,
+                'message': 'Recomendações populares carregadas com sucesso',
+                'count': len(movies_data),
+                'recommendations': movies_data
+            }, status=status.HTTP_200_OK)
+
         
         favorite_genre_ids = Movie.objects.filter(
             id__in=liked_movies
@@ -373,7 +414,18 @@ def for_you_recommendations(request):
         genre_ids = [g['genres__id'] for g in favorite_genre_ids if g['genres__id']]
         
         if not genre_ids:
-            return popular_recommendations(request)
+            days = int(request.GET.get('days', 30))
+            limit = int(request.GET.get('limit', 20))
+
+            popular_movies = _get_popular_movies(days=days, limit=limit)
+            movies_data = _serialize_popular_movies(popular_movies)
+
+            return Response({
+                'success': True,
+                'message': 'Recomendações populares carregadas com sucesso',
+                'count': len(movies_data),
+                'recommendations': movies_data
+            }, status=status.HTTP_200_OK)
         
         recommendations = Movie.objects.filter(
             genres__id__in=genre_ids
@@ -384,16 +436,20 @@ def for_you_recommendations(request):
         ).distinct().order_by('-rating')[:limit]
 
         if recommendations.count() == 0:
-            return popular_recommendations(request)
+            days = int(request.GET.get('days', 30))
+            limit = int(request.GET.get('limit', 20))
+
+            popular_movies = _get_popular_movies(days=days, limit=limit)
+            movies_data = _serialize_popular_movies(popular_movies)
+
+            return Response({
+                'success': True,
+                'message': 'Recomendações populares carregadas com sucesso',
+                'count': len(movies_data),
+                'recommendations': movies_data
+            }, status=status.HTTP_200_OK)
         
-        movies_data = [{
-            'id': movie.id,
-            'title': movie.title,
-            'rating': float(movie.rating),
-            'total_ratings': movie.total_ratings,
-            'release_date': str(movie.release_date),
-            'description': movie.description
-        } for movie in recommendations]
+        movies_data = _serialize_popular_movies(recommendations)
         
         return Response({
             'success': True,
@@ -444,7 +500,18 @@ def collaborative_recommendations(request):
         
         # Se o user não tem suficientes ratings, retorna populares
         if len(user_liked_movie_ids) < 3:
-            return popular_recommendations(request)
+            days = int(request.GET.get('days', 60))   # aqui usas 60 por default, como já tinhas
+            limit = int(request.GET.get('limit', 20))
+
+            popular_movies = _get_popular_movies(days=days, limit=limit)
+            movies_data = _serialize_popular_movies(popular_movies)
+
+            return Response({
+                'success': True,
+                'message': 'Recomendações populares carregadas com sucesso',
+                'count': len(movies_data),
+                'recommendations': movies_data
+            }, status=status.HTTP_200_OK)
         
         similar_users = PlataformaUser.objects.filter(
             review__movie_id__in=user_liked_movie_ids,
@@ -469,14 +536,21 @@ def collaborative_recommendations(request):
             likers_count=Count('review', distinct=True)
         ).order_by('-likers_count', '-rating')[:limit]
         
-        movies_data = [{
-            'id': movie.id,
-            'title': movie.title,
-            'rating': float(movie.rating),
-            'total_ratings': movie.total_ratings,
-            'release_date': str(movie.release_date),
-            'description': movie.description
-        } for movie in recommendations]
+        if recommendations.count() == 0:
+            days = int(request.GET.get('days', 30))
+            limit = int(request.GET.get('limit', 20))
+
+            popular_movies = _get_popular_movies(days=days, limit=limit)
+            movies_data = _serialize_popular_movies(popular_movies)
+
+            return Response({
+                'success': True,
+                'message': 'Recomendações populares carregadas com sucesso',
+                'count': len(movies_data),
+                'recommendations': movies_data
+            }, status=status.HTTP_200_OK)
+            
+        movies_data = _serialize_popular_movies(recommendations)
         
         return Response({
             'success': True,

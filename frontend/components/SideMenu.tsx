@@ -45,11 +45,10 @@ export default function SideMenu({
 
   const { isDark } = useTheme();
 
-  const menuBg = isDark ? "#050505" : "#FFFFFF";
-  const borderColor = isDark ? "#ececf0" : "#000000";
-  const iconColor = isDark ? "#9BA1A6" : "#687076";
-  const textColor = isDark ? "#FFFFFF" : "#000000";
-  const textMuted = isDark ? "#9BA1A6" : "#687076";
+  const menuBg = isDark ? "#151718" : "#ffffff";
+  const borderColor = isDark ? "#2a2a2a" : "#e6e6e6";
+  const iconColor = isDark ? "#fff" : "#030213";
+  const textMuted = isDark ? "#fff" : "#030213";
 
   const handleLogout = () => {
     logout();

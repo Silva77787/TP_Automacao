@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { useTheme } from "@/context/ThemeContext";
 
 import { useMovies } from "@/hooks/useMovies";
+import { useRecommendations } from "@/hooks/useRecommendations";
 
 import { Ionicons } from "@expo/vector-icons";
 
@@ -25,7 +26,6 @@ import React, {
 } from "react";
 import {
   ActivityIndicator,
-  Dimensions,
   FlatList,
   StyleSheet,
   Text,
@@ -72,6 +72,14 @@ export default function HomeScreen() {
   const [isLogin, setIsLogin] = useState(true);
   const [sortOption, setSortOption] = useState<SortOption>("default");
 
+  const {
+    movies: forYouMovies,
+    loading: recLoading,
+    error: recError,
+  } = useRecommendations("forYou", {
+    limit: numColumns,
+  });
+
   useFocusEffect(
     useCallback(() => {
       refetch();
@@ -85,16 +93,29 @@ export default function HomeScreen() {
     }
   }, [loading]);
 
-  const top10Recommended = useMemo(() => {
-    if (!backendMovies || backendMovies.length === 0) return [];
-    return backendMovies.slice(0, 10);
-  }, [backendMovies]);
-
   const recommendedMovies = useMemo(() => {
-    if (!top10Recommended.length) return [];
-    const max = Math.min(numColumns, top10Recommended.length);
-    return top10Recommended.slice(0, max);
-  }, [top10Recommended, numColumns]);
+    const source =
+      forYouMovies && forYouMovies.length > 0 ? forYouMovies : backendMovies;
+    console.log(forYouMovies);
+    if (!source || source.length === 0) return [];
+
+    const max = Math.min(numColumns, source.length);
+    return source.slice(0, max);
+  }, [forYouMovies, backendMovies, numColumns]);
+
+  useFocusEffect(
+    useCallback(() => {
+      refetch();
+      return () => {};
+    }, [refetch])
+  );
+
+  useEffect(() => {
+    if (!loading) {
+      setInitialLoading(false);
+    }
+  }, [loading]);
+
 
   const searchInputRef = useRef<TextInput | null>(null);
 
@@ -397,8 +418,6 @@ export default function HomeScreen() {
     </ProtectedRoute>
   );
 }
-
-const { width } = Dimensions.get("window");
 
 const styles = StyleSheet.create({
   container: {
