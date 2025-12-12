@@ -12,28 +12,26 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 from datetime import timedelta
+import os
+import dj_database_url
+from decouple import config
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
-
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-1v2f&w%m$4#2vat&=u==(9&jw-89sw(9x%_$!x_e0qn+_vp5^9'
-TMDB_READ_ACCESS_TOKEN = "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIyNmRjY2U4NTA2YjkzMjBhMzRjNzRkOGZkMmFlZDYxYyIsIm5iZiI6MTc2MjAwODkyMS44NDMwMDAyLCJzdWIiOiI2OTA2MWY1OWE1OWIxNDg3OWY1OTdjYTciLCJzY29wZXMiOlsiYXBpX3JlYWQiXSwidmVyc2lvbiI6MX0.rr1a-SPN4rsLEz-PyTJdaUvmox6MtGhCwCbP7CynfcQ"
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+SECRET_KEY = config('SECRET_KEY')
 
-ALLOWED_HOSTS = [
-    "findyourmovie.cbs-streaming.pt",          # Cloudflare/API hostname
-    "silva77787.github.io",                    # GitHub Pages frontend
-    "localhost",
-    "127.0.0.1",
-]
-CORS_ALLOW_ALL_ORIGINS = True # put false and uncomment the line below in prodution stage
-#CORS_ALLOWED_ORIGINS = ["https://silva77787.github.io",  # frontend origin]
+# SECURITY WARNING: don't run with debug turned on in production!
+DEBUG = config('DEBUG', default=False, cast=bool)
+
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1').split(',')
+
+# CORS configuration
+CORS_ALLOWED_ORIGINS = config('CORS_ALLOWED_ORIGINS', default='http://localhost:3000').split(',')
 
 # Application definition
 
@@ -54,6 +52,7 @@ AUTH_USER_MODEL = 'movies.PlataformaUser'
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -86,16 +85,12 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'moviedb',
-        'USER': 'admin',
-        'PASSWORD': 'admin123',
-        'HOST': 'db',
-        'PORT': '5432',
-    }
+    'default': dj_database_url.config(
+        default=config('DATABASE_URL'),
+        conn_max_age=600,
+        conn_health_checks=True,
+    )
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
@@ -131,7 +126,9 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
@@ -156,7 +153,7 @@ SIMPLE_JWT = {
     'BLACKLIST_AFTER_ROTATION': False,
     'UPDATE_LAST_LOGIN': False,
     'ALGORITHM': 'HS256',
-    'SIGNING_KEY': 'django-insecure-1v2f&w%m$4#2vat&=u==(9&jw-89sw(9x%_$!x_e0qn+_vp5^9',
+    'SIGNING_KEY': SECRET_KEY,
     'VERIFYING_KEY': True,
     'AUDIENCE': None,
     'ISSUER': None,
