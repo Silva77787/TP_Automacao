@@ -86,7 +86,7 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 
 DATABASES = {
     'default': dj_database_url.config(
-        default=config('DATABASE_URL'),
+        default=os.getenv('DATABASE_URL', ''),
         conn_max_age=600,
         conn_health_checks=True,
     )
@@ -161,4 +161,5 @@ SIMPLE_JWT = {
     'TOKEN_TYPE_CLAIM': 'token_type',
     'USER_ID_FIELD': 'username',
     'USER_ID_CLAIM': 'user_id',
+
 }
