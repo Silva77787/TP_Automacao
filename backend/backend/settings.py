@@ -27,13 +27,19 @@ TMDB_READ_ACCESS_TOKEN = "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIyNmRjY2U4NTA2YjkzMjBhM
 DEBUG = True
 
 ALLOWED_HOSTS = [
-    "findyourmovie.cbs-streaming.pt",          # Cloudflare/API hostname
-    "silva77787.github.io",                    # GitHub Pages frontend
+    "findyourmovie.cbc-streaming.pt",  # Cloudfare hostname from where the request comes
     "localhost",
     "127.0.0.1",
+    "web",
 ]
-CORS_ALLOW_ALL_ORIGINS = True # put false and uncomment the line below in prodution stage
-#CORS_ALLOWED_ORIGINS = ["https://silva77787.github.io",  # frontend origin]
+
+CORS_ALLOWED_ORIGINS = [
+    "https://silva77787.github.io",  
+    "http://localhost:3000",         
+    "http://localhost:8000",         
+]
+CORS_ALLOW_CREDENTIALS = True
+
 
 # Application definition
 
