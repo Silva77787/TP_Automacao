@@ -52,7 +52,7 @@ export default function SideMenu({
 
   const handleLogout = () => {
     logout();
-
+    onClose()
     showToast({
       type: "success",
       title: "Sessão terminada",
