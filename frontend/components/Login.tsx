@@ -52,6 +52,7 @@ export function Login({ visible, onClose, isLogin, setIsLogin }: LoginProps) {
     if (isLogin) {
       // ========== LOGIN ==========
       if (!email || !password) {
+        onClose();
         showToast({
           type: "error",
           title: "Campos em falta",
@@ -82,7 +83,7 @@ export function Login({ visible, onClose, isLogin, setIsLogin }: LoginProps) {
             username: data.username,
             email: data.email,
           });
-
+          onClose();
           showToast({
             type: "success",
             title: "Sessão iniciada",
@@ -100,7 +101,8 @@ export function Login({ visible, onClose, isLogin, setIsLogin }: LoginProps) {
             data.errors?.error?.[0] || data.error || "Login failed";
 
           console.error("❌ Login error:", errorMessage);
-
+          
+          onClose();
           showToast({
             type: "error",
             title: "Erro ao entrar",
@@ -109,6 +111,7 @@ export function Login({ visible, onClose, isLogin, setIsLogin }: LoginProps) {
         }
       } catch (error: any) {
         console.error("❌ Login network error:", error);
+        onClose();
         showToast({
           type: "error",
           title: "Erro de rede",
@@ -120,6 +123,7 @@ export function Login({ visible, onClose, isLogin, setIsLogin }: LoginProps) {
     } else {
       // ========== REGISTER ==========
       if (!name || !email || !password) {
+        onClose();
         showToast({
           type: "error",
           title: "Campos em falta",
@@ -144,6 +148,7 @@ export function Login({ visible, onClose, isLogin, setIsLogin }: LoginProps) {
         const data = await response.json();
 
         if (response.ok) {
+          onClose();
           showToast({
             type: "success",
             title: "Conta criada",
@@ -161,7 +166,8 @@ export function Login({ visible, onClose, isLogin, setIsLogin }: LoginProps) {
               .join(", ") ||
             data.message ||
             "Registration failed";
-
+          
+          onClose();
           showToast({
             type: "error",
             title: "Erro no registo",
@@ -170,6 +176,7 @@ export function Login({ visible, onClose, isLogin, setIsLogin }: LoginProps) {
         }
       } catch (error: any) {
         console.error("❌ Registration error:", error);
+        onClose();
         showToast({
           type: "error",
           title: "Erro de rede",
